@@ -161,10 +161,10 @@ save(lcm.landscape,
      file = 
        paste0(gis.wd, 
               "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", 
-              ts.lcm.names[this.ts.num], "\\", this.year, "\\r_funcconnect_patchwork.RData")
+              ts.names[this.ts.num], "\\", this.year, "\\r_funcconnect_patchwork.RData")
 )
 
-if(grep("Illustrative", ts.lcm.names[this.ts.num]) ){
+if(grepl("Illustrative", ts.names[this.ts.num]) ){
   save(awi.bl.patch.hexid,
        patch.edge,
        awi.edge,
@@ -172,7 +172,7 @@ if(grep("Illustrative", ts.lcm.names[this.ts.num]) ){
        edge,
        file = paste0(gis.wd, 
                 "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", 
-                ts.lcm.names[this.ts.num], "\\", this.year, "\\edge_awi.polys.RData")
+                ts.names[this.ts.num], "\\", this.year, "\\edge_awi.polys.RData")
   )
   
   }
