@@ -29,7 +29,7 @@ dispers.costs$scaled.ecolog.cost[dispers.costs$hab.num==1] = focalhab.cost
 
 ## CUT DATA TO LANDSCAPE AND SAVE ----
 ### select buffered landscape to avoid edge effects  ----
-this.ts = Tscapes01[this.ts.num,]
+this.ts = Focal_landscape[this.ts.num,]
 ts.buff = this.ts %>% st_simplify( preserveTopology = T, dTolerance = landscape.buffer.simplification.tolerance[1]) %>% # first simplify hack to reduce run time. this is a rough buffer to negate edge effects, so can be v rough
   st_buffer( dist = buffer.roundLandscape) %>% 
   st_simplify( preserveTopology = FALSE, dTolerance = landscape.buffer.simplification.tolerance[2])

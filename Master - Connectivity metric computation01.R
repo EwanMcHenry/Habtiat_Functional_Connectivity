@@ -6,28 +6,29 @@
 ##------ Fri Feb 25 09:19:50 2022 ------##
 timestart = Sys.time()
 
-# working directories ----
+# load libraries and functions - read subscript 01 ----
+source("subparts of calculation\\sub01- loading libraries and functions 01.R")
+source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans functions.R")
+source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans gis specifications.R")
+
+# Configuration ----
+## working directories ----
 maindrive = "D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust"
 #maindrive = "C:\\Users\\emc2\\OneDrive - The Woodland Trust"
 ts.wd = paste0(maindrive , "\\Treescapes analysis")
 gis.wd = paste0( maindrive, "\\GIS")
 func.conect.path = paste0(gis.wd, "\\Connectivity\\Functional connectivity\\functional conectivity metric dev")
 sub.code.path = paste0(func.conect.path, "\\code\\subparts of calculation")
-
-# read subscript 01 - load libraries and functions ----
-source(paste0(sub.code.path, "\\sub01- loading libraries and functions 01.R"))
-source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans functions.R")
-source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans gis specifications.R")
-
-# DEFINE LANDSCAPE(S) ----
-#Tscapes01 = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
-Tscapes01 = st_read(paste0(gis.wd, "\\Data\\Rainforest\\welsh rainforest\\2oceaniczone.shp")) %>% st_transform( 27700) 
-Tscapes01$name = "Welsh Rainforest"
-this.tss = Tscapes01$name # vector of names of all landscapes to be calculated over
+## DEFINE LANDSCAPE(S) ----
+#Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
+Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Rainforest\\welsh rainforest\\2oceaniczone.shp")) %>% st_transform( 27700) 
+Focal_landscape$name = "Welsh Rainforest"
+this.tss = Focal_landscape$name # vector of names of all landscapes to be calculated over
+## Define year ----
 #this.years = c( 2019, 1990) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 this.years = c( 2019) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
-# SET MODEL CONSTANTS ----
-source(paste0(sub.code.path, "\\sub01.2- setting model constants 01.R"))
+## SET MODEL CONSTANTS ----
+source("subparts of calculation\\sub01.2- setting model constants 01.R")
 
 
 # set up loop for multiple years and landscapes ----

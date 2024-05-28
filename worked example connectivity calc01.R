@@ -21,9 +21,9 @@ sub.code.path = paste0(func.conect.path, "\\code\\subparts of calculation")
     
 # DEFINE LANDSCAPE(S) ----
 # sf of landscapes for whcih connectivitty is to be calcualted
-Tscapes01 = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% 
+Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% 
   arrange(name) 
-Tscapes01 = Tscapes01[0,]# cut out all
+Focal_landscape = Focal_landscape[0,]# cut out all
 countries = st_read(paste0(gis.wd,"\\Data\\administrative boundaries\\Countries\\R.5countries.simp100m.shp"))%>% st_transform( 27700) %>% arrange(name)
 
 
@@ -39,7 +39,7 @@ hex.grid0 = st_make_grid(countries, c(landscape.h, landscape.w), what = "polygon
 hex.grid = st_sf(hex.grid0) %>%
   mutate(grid_id = 1:length(lengths(hex.grid0)))  # add grid ID
 
-Tscapes01[1,"geometry"] = hex.grid %>% 
+Focal_landscape[1,"geometry"] = hex.grid %>% 
   filter(st_intersects(hex.grid, 
                        data.frame(easting, northing) %>%
                          st_as_sf(coords = c("easting", "northing"), crs = 27700),
@@ -51,12 +51,12 @@ Tscapes01[1,"geometry"] = hex.grid %>%
 # st_bbox() %>% 
 # st_as_sfc()
 
-Tscapes01$fa_id = 1
-# Tscapes01$name = ts.lcm.names = "Illustrative.restricted"
-Tscapes01$name = ts.lcm.names = landscape.name
+Focal_landscape$fa_id = 1
+# Focal_landscape$name = ts.lcm.names = "Illustrative.restricted"
+Focal_landscape$name = ts.lcm.names = landscape.name
 
 
-this.tss = Tscapes01$name[1] # vector of names of all landscapes to be calculated over
+this.tss = Focal_landscape$name[1] # vector of names of all landscapes to be calculated over
 this.years = c( 2019, 1990)[1] # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 
 # SET MODEL CONSTANTS  including buffer ----
@@ -167,7 +167,7 @@ load(paste0(func.conect.path, "\\analysis outputs\\", ts.lcm.names[this.ts.num],
 # curation for figures -----
     ## figure buffer ----
     # becasue showing entire buffered landscape takes up too much space
-    ts.fig.buff = Tscapes01 %>% st_buffer(dist = buffer.for.figure.landscape)
+    ts.fig.buff = Focal_landscape %>% st_buffer(dist = buffer.for.figure.landscape)
     # and cut down all important spatial data to that for later use
     
     lcm.landscape = lcm.landscape  %>% crop(ts.fig.buff)%>% mask(ts.fig.buff)
@@ -193,7 +193,7 @@ load(paste0(func.conect.path, "\\analysis outputs\\", ts.lcm.names[this.ts.num],
     
     lcm.df = lcm.landscape %>%
       lcm.to.df()
-    lcm.df.focal = lcm.landscape %>% mask(Tscapes01) %>% 
+    lcm.df.focal = lcm.landscape %>% mask(Focal_landscape) %>% 
       lcm.to.df()
     
     ## separate quality polygons ----
@@ -222,7 +222,7 @@ load(paste0(func.conect.path, "\\analysis outputs\\", ts.lcm.names[this.ts.num],
     extra.fade.distance = 100 #m to block out harsh outline of some polys that falls outside origianl raster
     alpha.inter = 0.5 # alpha intercept - the initial fade level once out of focal landscape
     
-    dist.to.center.df =   rasterize(Tscapes01, rasterFromXYZ(lcm.df)) %>% buffer(width = extra.fade.distance) %>% 
+    dist.to.center.df =   rasterize(Focal_landscape, rasterFromXYZ(lcm.df)) %>% buffer(width = extra.fade.distance) %>% 
       distance() %>% mask(ts.fig.buff %>% st_buffer(dist = extra.fade.distance)) %>% 
       as.data.frame(., xy = TRUE)  %>%
       mutate(fade = layer/max(layer,na.rm = T)) %>%
@@ -244,7 +244,7 @@ gridbuff_Tcost.C <- geoCorrection(gridbuff_Tcost, type="c", multpl=FALSE, scl=F)
 
 bigger.patches = bl.patch.hexid.centroids$effective.ha> median (bl.patch.hexid.centroids$effective.ha)
 eg.patch = which.max(as.numeric(1/st_distance(bl.patch.hexid.centroids
-                                              , st_centroid(Tscapes01), by_element = T))*bigger.patches)
+                                              , st_centroid(Focal_landscape), by_element = T))*bigger.patches)
 #which(bl.patch.hexid.centroids$effective.ha == max(bl.patch.hexid.centroids$effective.ha ))
 
 eg.shortest.paths = shortestPath(gridbuff_Tcost.C, bl.patch.hexid.centroids.sp[eg.patch,1], bl.patch.hexid.centroids.sp, 
@@ -262,7 +262,7 @@ plot(eg.accum.cost)
 eg.accum.cost.paths = as(eg.shortest.paths, "SpatialPoints") %>%
   rasterize(., eg.accum.cost, mask=TRUE) 
 eg.accum.cost.paths.focal = as(eg.shortest.paths.focal, "SpatialPoints") %>%
-  rasterize(., eg.accum.cost, mask=TRUE) %>% crop(Tscapes01) %>% mask(Tscapes01)
+  rasterize(., eg.accum.cost, mask=TRUE) %>% crop(Focal_landscape) %>% mask(Focal_landscape)
 
 plot(eg.accum.cost.paths.focal)
 
@@ -276,7 +276,7 @@ bl.patch.hexid.centroids$eg.cost.toget = effective.distance[eg.patch,]
 effective.area.circle.patch = st_buffer(bl.patch.hexid.centroids, dist = sqrt(bl.patch.hexid.centroids$effective.ha*10000/pi))# *10000 becasue ha to m
 effective.area.circle.patch$qual.score = 1
 
-eca.circle.patch = st_buffer(st_centroid(Tscapes01), dist = sqrt(landscape.metrics$leastcost.ECA*10000/pi))# *10000 becasue ha to m
+eca.circle.patch = st_buffer(st_centroid(Focal_landscape), dist = sqrt(landscape.metrics$leastcost.ECA*10000/pi))# *10000 becasue ha to m
 eca.circle.patch$qual.score = 1
 
 # plots ----
@@ -299,10 +299,10 @@ eg.toget.patches.focal = eg.toget.patches[eg.toget.patches$in.landscape,]
     
     wider.fade.geom = ts.fig.buff %>% 
       geom_sf(data = ., mapping = aes(), fill = "white", alpha = 0.2, colour = NA, size = 0 )
-    area.fade.geom = Tscapes01 %>% 
+    area.fade.geom = Focal_landscape %>% 
       geom_sf(data = ., mapping = aes(), fill = "white", alpha = 0.2, colour = NA, size = 0 )
     
-    area.boarder.geom = Tscapes01 %>% 
+    area.boarder.geom = Focal_landscape %>% 
       geom_sf(data = ., mapping = aes(), fill = "transparent", colour = "black", size = 1 )
     
     outter.boarder.geom = ts.fig.buff %>% 
@@ -467,7 +467,7 @@ eg.toget.patches.focal = eg.toget.patches[eg.toget.patches$in.landscape,]
     
     ### edge ----
     edge.geom = function(scape = "focal", pattern_spacing = 0.01, size = patch.line.size) {
-      if(scape == "focal"){patches = patch.edge %>% st_intersection(Tscapes01) } 
+      if(scape == "focal"){patches = patch.edge %>% st_intersection(Focal_landscape) } 
       if(scape == "wider"){patches = patch.edge %>% st_intersection(ts.fig.buff)}
       geom_sf_pattern(data = patches,  mapping = aes(), fill = NA, 
                       colour = "black", pattern = 'stripe',
@@ -479,7 +479,7 @@ eg.toget.patches.focal = eg.toget.patches[eg.toget.patches$in.landscape,]
     
     ### awi ----
     awi.geom <- function(scape = "focal") {
-      if(scape == "focal"){patches = awi.landscape %>% st_intersection(Tscapes01) } 
+      if(scape == "focal"){patches = awi.landscape %>% st_intersection(Focal_landscape) } 
       if(scape == "wider"){patches = awi.landscape %>% st_intersection(ts.fig.buff)}
       geom_sf(data = patches, mapping = aes(), fill = "yellow", alpha = 0.5,
               colour = "black", 
@@ -491,7 +491,7 @@ eg.toget.patches.focal = eg.toget.patches[eg.toget.patches$in.landscape,]
                                colour = "black", size = patch.line.size )
     
     all.patch.geom <- function(scape = "focal", fill.col = ceh.col.pallette[ceh.full.habtype == "Broadleaf" ]) {
-      if(scape == "focal"){patches = bl.patch.id.poly.hexid %>% st_intersection(Tscapes01) }
+      if(scape == "focal"){patches = bl.patch.id.poly.hexid %>% st_intersection(Focal_landscape) }
       if(scape == "wider"){patches = bl.patch.id.poly.hexid %>% st_intersection(ts.fig.buff) } 
       geom_sf(data = patches, mapping = aes(), fill = fill.col
               ,  colour = "black", size = patch.line.size )
@@ -505,7 +505,7 @@ eg.toget.patches.focal = eg.toget.patches[eg.toget.patches$in.landscape,]
     
     #### patch area ----
     patch_area.geom <- function(scape = "focal", fill.col = "subpatch.hex.ha") {
-      if(scape == "focal"){patches = bl.patch.id.poly.hexid %>% st_intersection(Tscapes01) } 
+      if(scape == "focal"){patches = bl.patch.id.poly.hexid %>% st_intersection(Focal_landscape) } 
       if(scape == "wider"){patches = bl.patch.id.poly.hexid %>% st_intersection(ts.fig.buff)}
       geom_sf(data = patches,  mapping = aes(fill = as.data.frame(patches)[,fill.col]), colour = "black", size = patch.line.size )
     }
@@ -518,7 +518,7 @@ eg.toget.patches.focal = eg.toget.patches[eg.toget.patches$in.landscape,]
     #### patch quality ----
     # habtiat
     hab.quality.geom <- function(scape = "focal", fill.col = "qual.score") {
-      if(scape == "focal"){patches = patch.qual.sf %>% st_intersection(Tscapes01) } 
+      if(scape == "focal"){patches = patch.qual.sf %>% st_intersection(Focal_landscape) } 
       if(scape == "wider"){patches = patch.qual.sf %>% st_intersection(ts.fig.buff)}
       geom_sf(data = patches, mapping = aes(fill = as.data.frame(patches)[,fill.col]),
               colour = "black", size = patch.line.size )
@@ -531,7 +531,7 @@ eg.toget.patches.focal = eg.toget.patches[eg.toget.patches$in.landscape,]
                                                guide = guide_colorbar(title.position = "top",  title.hjust = 0)) 
     # mean for patch
     av_patch_quality.geom = function(scape = "focal", fill.col = "mean.quality") {
-      if(scape == "focal"){patches = bl.patch.id.poly.hexid %>% st_intersection(Tscapes01) } 
+      if(scape == "focal"){patches = bl.patch.id.poly.hexid %>% st_intersection(Focal_landscape) } 
       if(scape == "wider"){patches = bl.patch.id.poly.hexid %>% st_intersection(ts.fig.buff)}
       geom_sf(data = patches, mapping = aes(fill = as.data.frame(patches)[,fill.col]),
               colour = "black", size = patch.line.size )
@@ -551,7 +551,7 @@ eg.toget.patches.focal = eg.toget.patches[eg.toget.patches$in.landscape,]
                                                   guide = guide_colorbar(title.position = "top",  title.hjust = 0.5))
     
     effective_area_circlepatch.geom.focal = effective.area.circle.patch[effective.area.circle.patch$in.landscape,] %>% 
-      st_intersection(Tscapes01) %>% 
+      st_intersection(Focal_landscape) %>% 
       geom_sf(data = ., mapping = aes(fill = qual.score),
               colour = "black", size = patch.line.size )
     
