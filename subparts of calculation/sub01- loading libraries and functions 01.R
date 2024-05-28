@@ -19,7 +19,7 @@ library(rgis) # remotes::install_github("Pakillo/rgis") # for fast_mask # -- oth
 library(fasterize)
 library(gdistance) # for costdistance - https://rdrr.io/rforge/gdistance/f/inst/doc/gdistance1.pdf 
 # remotes::install_github("arielfri/buffr")# for fast raster buffering
-library(buffr)
+library(buffr) # remotes::install_github("arielfri/buffr")# for fast raster buffering
 library(compiler)
 library(foreach)
 library(doParallel)
