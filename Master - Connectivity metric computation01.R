@@ -30,6 +30,8 @@ this.years = c( 2019) # vector of years to be calcualted over -- must be LCM dat
 ## SET MODEL CONSTANTS ----
 source("subparts of calculation\\sub01.2- setting model constants 01.R")
 
+# read subscript 02 - load uncurated global data ----
+source("subparts of calculation\\sub02- load data01.R")
 
 # set up loop for multiple years and landscapes ----
 
@@ -38,8 +40,6 @@ for(this.ts.for.loop in this.tss[1: length(this.tss)]){
     year = this.year
     this.ts.num = which(ts.lcm.names == this.ts.for.loop) # this bit should maybe automatically chosen in for loop in future
     
-# read subscript 02 - load uncurated data ----
-source("subparts of calculation\\sub02- load data01.R"))
 # read subscript 03 - data curation ----
 ## make folder for this landscape's rdata
 ## curate costs and edge effects, scaling etc
