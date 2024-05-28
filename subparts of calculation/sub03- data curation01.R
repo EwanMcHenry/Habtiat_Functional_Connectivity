@@ -11,9 +11,9 @@
 
 ## make folder for this TS's objects ----
 dir.create(paste0(gis.wd, 
-                  "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.lcm.names[this.ts.num]))
+                  "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.names[this.ts.num]))
 dir.create(paste0(gis.wd, 
-                  "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.lcm.names[this.ts.num],"\\", this.year))
+                  "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.names[this.ts.num],"\\", this.year))
 
 ## costs and edge effects of habitat types ----
 # scale cost by fraction of maximum cost - cost clacs work best when costs close to 1, only use multiples becasue easy to scale final distances
@@ -129,7 +129,7 @@ save(tsbuff.lcm19.rast25,
      cost.scale.factor,
      dispers.costs, this.country, 
      file = paste0(gis.wd, 
-           "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.lcm.names[this.ts.num], "\\", this.year, "\\r_curated data_.RData")
+           "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.names[this.ts.num], "\\", this.year, "\\r_curated data_.RData")
     )
 
 # save some space in RAM by removing some objects ----
