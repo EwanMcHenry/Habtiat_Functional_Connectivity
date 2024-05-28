@@ -20,9 +20,12 @@ source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans funct
 source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans gis specifications.R")
 
 # DEFINE LANDSCAPE(S) ----
-Tscapes01 = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
-this.tss = ts.lcm.names # vector of names of all landscapes to be calculated over
-this.years = c( 2019, 1990) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
+#Tscapes01 = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
+Tscapes01 = st_read(paste0(gis.wd, "\\Data\\Rainforest\\welsh rainforest\\2oceaniczone.shp")) %>% st_transform( 27700) 
+Tscapes01$name = "Welsh Rainforest"
+this.tss = Tscapes01$name # vector of names of all landscapes to be calculated over
+#this.years = c( 2019, 1990) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
+this.years = c( 2019) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # SET MODEL CONSTANTS ----
 source(paste0(sub.code.path, "\\sub01.2- setting model constants 01.R"))
 
