@@ -15,18 +15,24 @@ constants <- list(
   non.awi.qual.eff = 1, # relative value of non awi
   awi.qual.eff =  1/0.45, # relative value of awi within patches
   
-  # dispersal parameters - just change the dispersal.dist.95
-  dispersal.dist.95  = 5000, # "max" dispersal distance (95th percentile)
+  # dispersal parameters - just change the dispersal.dist.set
+  dispersal.dist.set = c(5000) # distance where dispersal success probably is set
+  dispersal.dist.set = 1000 #another set of dispersal distances
+  
+  prob.dispersal.at.set = 0.5, # probability of successful dispersal between patches at dispersal.dist.set
+
   multiple.max.considered = 2, # factor to limit patch searching to an absolute max dispersal distance for computationall efficiency
-  alpha  = -log(0.05)/dispersal.dist.95 # dispersal kernal scaleing parameter
-  max.dispersal.considered  = dispersal.dist.95  * multiple.max.considered # to limit max dispersal distance between patches for computationall efficiency
+  
+  
+  # derivative dispersal parameters
+  alpha  = -log(0.05)/dispersal.dist.set # dispersal kernal scaleing parameter
+  max.dispersal.considered  = dispersal.dist.set  * multiple.max.considered # to limit max dispersal distance between patches for computationall efficiency
   max.p.considered = exp(-alpha * max.dispersal.considered)
   mean.effective.dispersal = -log(0.5)/alpha
   
-  #another set of dispersal distances 
-  dispersal.dist.95.sensitive = 1000
-  alpha.sensitive =  -log(0.05)/dispersal.dist.95.sensitive
-  max.dispersal.considered.sensitive  = dispersal.dist.95.sensitive  * multiple.max.considered # to limit max dispersal distance between patches for computationall efficiency
+#  add dispersal dist at 95 to constants
+  alpha.sensitive =  -log(0.05)/dispersal.dist.set.sensitive
+  max.dispersal.considered.sensitive  = dispersal.dist.set.sensitive  * multiple.max.considered # to limit max dispersal distance between patches for computationall efficiency
   max.p.considered.sensitive = exp(-alpha * max.dispersal.considered.sensitive)
   mean.effective.dispersal.sensitive = -log(0.5)/alpha.sensitive
   
