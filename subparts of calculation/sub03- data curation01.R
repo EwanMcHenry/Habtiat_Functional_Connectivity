@@ -3,17 +3,13 @@
 # functional connectivity metric dev
 # script 03 - data curation
 
-
-
-
 # curation ----
 
-
 ## make folder for this TS's objects ----
-dir.create(paste0(gis.wd, 
-                  "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.names[this.ts.num]))
-dir.create(paste0(gis.wd, 
-                  "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.names[this.ts.num],"\\", this.year))
+dir.create(paste0(func.conect.path, 
+                  "\\analysis outputs\\", this.tss[this.ts.num]))
+dir.create(paste0(func.conect.path, 
+                  "\\analysis outputs\\", this.tss[this.ts.num],"\\", this.year))
 
 ## costs and edge effects of habitat types ----
 # scale cost by fraction of maximum cost - cost clacs work best when costs close to 1, only use multiples becasue easy to scale final distances
@@ -99,7 +95,7 @@ tsbuff.awi <- st_intersection(awi, ts.buff) %>%
 ### select nwss with more than 50% native canopy and rasterise with ts ----
 
 if(this.country == "Scotland"){
-  tsbuff.nwss <- st_intersection(nwss[nwss$NATIVE_PCT<=50,] %>% st_cast("POLYGON"), ts.buff) %>% 
+  tsbuff.nwss <- st_intersection(nwss[nwss$NATIVE_PCT>=50,] %>% st_cast("POLYGON"), ts.buff) %>% 
     st_make_valid() %>%  st_cast("MULTIPOLYGON") %>% 
     st_cast("POLYGON")
 } else{ tsbuff.nwss = NA}
