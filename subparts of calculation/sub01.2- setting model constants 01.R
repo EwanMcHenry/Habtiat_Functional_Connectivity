@@ -37,7 +37,7 @@ focalhab.cost = 0.05 # cost of moving through focal (bl woodland) habitat - give
 cost.res = 4 # n cells to be mean-aggregated (vert and horiz) for dispersal cost. higher to reduce computing time
 
 # define which cost set is being used here
-eycott = read.csv(paste0(gis.wd, "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\hab costs and edge effects Eycott 2011.csv"))
+eycott = read.csv("hab costs and edge effects Eycott 2011.csv")
 
 eycott$guy.cost[eycott$guy.cost == 1000] = 50 # hot fix - saltwater guy cost too high (1000), messes with scaling of costs (need to be scaled to not have range of 1000s to make algorithm run nice), here I make it more reasonable
 dispers.costs <- data.frame(hab = eycott$hab,

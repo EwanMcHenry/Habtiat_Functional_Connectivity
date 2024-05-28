@@ -17,8 +17,8 @@ maindrive = "D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust"
 #maindrive = "C:\\Users\\emc2\\OneDrive - The Woodland Trust"
 ts.wd = paste0(maindrive , "\\Treescapes analysis")
 gis.wd = paste0( maindrive, "\\GIS")
-func.conect.path = paste0(gis.wd, "\\Connectivity\\Functional connectivity\\functional conectivity metric dev")
-sub.code.path = paste0(func.conect.path, "\\code\\subparts of calculation")
+func.conect.path = paste0(gis.wd, "\\Connectivity\\Habtiat_Functional_Connectivity")
+sub.code.path = paste0(func.conect.path, "\\subparts of calculation")
 ## DEFINE LANDSCAPE(S) ----
 #Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
 Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Rainforest\\welsh rainforest\\2oceaniczone.shp")) %>% st_transform( 27700) 
@@ -39,7 +39,7 @@ for(this.ts.for.loop in this.tss[1: length(this.tss)]){
     this.ts.num = which(ts.lcm.names == this.ts.for.loop) # this bit should maybe automatically chosen in for loop in future
     
 # read subscript 02 - load uncurated data ----
-source(paste0(sub.code.path, "\\sub02- load data01.R"))
+source("subparts of calculation\\sub02- load data01.R"))
 # read subscript 03 - data curation ----
 ## make folder for this landscape's rdata
 ## curate costs and edge effects, scaling etc
