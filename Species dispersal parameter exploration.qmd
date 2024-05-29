@@ -1,0 +1,173 @@
+---
+title: "Exploring species dispersal"
+author: "Ewan McHenry"
+format: html
+editor: visual
+---
+
+```{r libraries and data}
+
+
+# exploration of species dispersal data
+# libraries
+library(tidyverse)
+library(plotly)
+library(ggpubr)#publr
+library(htmlwidgets)
+library(htmltools)
+library(hrbrthemes)
+library(viridis)
+library(knitr)
+library(kableExtra)
+library(DT)
+library(purrr)  # Ensure purrr is loaded for the map function
+
+
+
+# data ----
+# copy data from directory to repo
+original_data_dir <- "D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Data\\Species\\species dispersal data\\species_dispersal_data_woodland.csv"
+file.copy(original_data_dir, "Data", overwrite = TRUE)
+
+  
+# load data
+dsp_df = read.csv("Data\\species_dispersal_data_woodland.csv")
+
+
+
+```
+
+Data set on species dispersal distances from literature review, shared by Tom Travers. Species native or currently residing in Britain, representing a broad range of dispersal distances.
+
+## Curation
+
+Where mean dispersal distance it is reported, where not available median dispersal distance is reported. Where neither are available, the maximum dispersal distance is used to estimate median dispersal distance[^1].
+
+[^1]: Query: here is a list of species, add a comma after each and a logical variable defining whether or not each species is associated with trees or woodland habitat
+
+Each species was categorised as woodland associated or not by running through chat gpt[^2]
+
+[^2]: Here's the list of species, each followed by a comma and a logical variable indicating whether the species is associated with trees or woodland habitat (TRUE) or not (FALSE):
+
+```{r initial get-to-know,  include = FALSE}
+str(dsp_df)
+#lengh non na in each col
+sapply(dsp_df, function(x) sum(!is.na(x)))
+
+# curation of movement info
+
+dsp_df$used.median <- is.na(dsp_df$mean_movement) & !is.na(dsp_df$median_movement)
+dsp_df$used.max <- is.na(dsp_df$mean_movement) & is.na(dsp_df$median_movement)& !is.na(dsp_df$max_movement)
+dsp_df$method <- NA
+dsp_df$method[!is.na(dsp_df$mean_movement)] <- "mean"
+dsp_df$method[is.na(dsp_df$mean_movement) & !is.na(dsp_df$median_movement)] <- "median"
+dsp_df$method[is.na(dsp_df$mean_movement) & is.na(dsp_df$median_movement)& !is.na(dsp_df$max_movement)] <- "max"
+
+
+dsp_df$nu.move <-  dsp_df$mean_movement
+dsp_df$nu.move[is.na(dsp_df$nu.move)] <- dsp_df$median_movement[is.na(dsp_df$nu.move)]
+dsp_df$nu.move[is.na(dsp_df$nu.move)] <- (-log(0.5)/
+                                           ((-log(0.05))/
+                                              dsp_df$max_movement[is.na(dsp_df$nu.move)]
+                                             )
+                                          )
+
+```
+
+```{r table of species dispersal information}
+# table of species dispersal information
+
+dsp_df %>% 
+  select(common_name, full_species, class, 
+         gpt_wood_hab, 
+         nu.move, max_movement, method#,
+         #used.median, used.max
+         ) %>%
+  rename("species" = "full_species",
+         "Comon name" = "common_name",
+         "Woodland associated" = "gpt_wood_hab",
+         "Average movement (m)" = "nu.move",
+         "Max movement (m)" = "max_movement",
+         "Class" = "class") %>%
+  datatable(extensions = c('FixedColumns',"FixedHeader"),
+              options = list(scrollX = T,
+                             scrollY = "400px",
+                             paging = F,
+                             fixedHeader=F,
+                             dom = 't',
+                             fixedColumns = list(leftColumns = 1) 
+                             ),
+            rownames = F,
+            filter="top", selection="multiple") %>% 
+  formatStyle( columns = c("Comon name"), fontWeight = 'bold', `text-align` = 'left', "white-space" = "nowrap")
+
+```
+
+Taking the median movement where there are multiple entries for the same species, and plotting the range as a line. Only looking at species with movement of \< 3000 m.
+
+```{r}
+# plot movement data WITH SPECIES LABELLED
+# hover text using ggplotly()
+# point distribution jittered verticle
+
+move.cap <- 3000
+
+# Interactive plot
+plot <- dsp_df %>% 
+  filter(woodland.tree.associated == 1,
+         nu.move < move.cap
+         ) %>%
+  group_by(species) %>%
+  summarise(movement = median(nu.move, na.rm = TRUE),
+            move.upper = max(nu.move, na.rm = TRUE),
+            move.lower = min(nu.move, na.rm = TRUE),
+            move.sd = sd(nu.move, na.rm = TRUE),
+            class = class[1],
+            common_name = common_name[1],
+            ) %>%
+  ggplot( aes(y=class, x=movement, fill=class)) +
+  geom_boxplot(outlier.colour = NULL) +
+  scale_fill_viridis(discrete = TRUE, alpha=0.6) +
+  
+  geom_point(size=2, alpha=0.9, 
+             shape = 21,
+             aes(text = map(
+                paste0("<b>", common_name, "</b>",
+                       "<br> movement: ", round(movement), " m<br>(",
+                       round(move.lower), " - ", round(move.upper), ")"), 
+                             HTML),
+                  fill = class),
+             position= position_jitter()
+             ) +
+  # geom_errorbarh(aes(xmin = movement - move.sd, xmax = movement + move.sd,
+  #                    colour = class), height = 0.1,
+  #                position=ggstance::position_dodgev(height=0.9)
+  #                ) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("Species movement") +
+  xlab("Distance (m)") +
+  ylab("Species class")
+
+plot
+
+
+
+
+```
+
+Interactive plot
+
+```{r}
+ggplotly(plot, tooltip = "text", dynamicTicks = T) %>% 
+  config(displayModeBar = F)
+  
+
+```
+
+```{r}
+
+```
