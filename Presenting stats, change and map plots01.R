@@ -3,14 +3,13 @@
 # functional connectivity metric dev
 # determing change over time, makign maps and tables and storign improtant stats.
 # this code should opperate stand alone, so long as the master computation code has already been run
+source("subparts of calculation\\sub00- loading libraries and functions.R")
+source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans functions.R")
+source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans gis specifications.R")
 
-# working directories ----
-maindrive = "D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust"
-#maindrive = "C:\\Users\\emc2\\OneDrive - The Woodland Trust"
-ts.wd = paste0(maindrive , "\\Treescapes analysis")
-gis.wd = paste0( maindrive, "\\GIS")
-func.conect.path = paste0(gis.wd, "\\Connectivity\\Functional connectivity\\functional conectivity metric dev")
-
+# Configuration ----
+## SET MODEL CONSTANTS ----
+source("subparts of calculation\\sub01 - configuration.R") # configureation file
 
 # libraries ----
 library(tidyverse)
@@ -26,18 +25,14 @@ library("rnaturalearth")
 library("rnaturalearthdata")
 library("rnaturalearthhires") # install.packages("rnaturalearthhires", repos = "http://packages.ropensci.org", type = "source")
 
-source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans functions.R")
-source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans gis specifications.R")
+
 pad.lim = function (x, map.pad = 0.05){
   # function to add % padding to a range of two numbers
   c(x[1] - diff(range(x)*map.pad),x[2] + diff(range(x)*map.pad) )
 }
 world <- ne_countries(scale = "large", returnclass = "sf")
 
-# DEFINE LANDSCAPE(S) and constants ----
-this.tss = ts.andAll.lcm.names # vector of names of all landscapes to be calculated over
-this.years = c( 2019, 1990) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
-nice.names = ts.andAll.nice.names
+nice.names = this.tss
 
 stand.plot.height = 7
 stand.plot.width = 6
@@ -45,22 +40,22 @@ hex.line.size = 0.05
 
 # LOAD and store all landscape and hexgrid eca info: landscape.metrics.all all.hexgrids ----
 #  make objects to store in
-load(paste0(gis.wd, 
-            "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", this.tss[1], "\\", this.years[1], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
+load(paste0(func.conect.path, "\\analysis outputs\\", 
+            this.tss[1], "\\", years.considered[1], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
 landscape.metrics.all = landscape.metrics[0,]
 # load data needed for landscapes in loop
 hex.colnames = names(ts.hexgrid)
 all.hexgrids = list (NA)
-for(i in seq_along(this.tss)){
-  for(y in seq_along(this.years)){
-    load(paste0(gis.wd, 
-           "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", this.tss[i], "\\", this.years[y], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
+for(i in seq_along(this.tss)[1]){
+  for(y in seq_along(years.considered)[1]){
+    load(paste0(func.conect.path, "\\analysis outputs\\", 
+                this.tss[i], "\\", years.considered[y], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
     
-    landscape.metrics.all[(i-1)*length(this.years)+y,] = landscape.metrics
+    landscape.metrics.all[(i-1)*length(years.considered)+y,] = landscape.metrics
     
     # hexgrid with stuff 
-    all.hexgrids[[(i-1)*length(this.years)+y]] = list(name = this.tss[i], 
-                                                      year = this.years[y],
+    all.hexgrids[[(i-1)*length(years.considered)+y]] = list(name = this.tss[i], 
+                                                      year = years.considered[y],
                                                       hexgrid = ts.hexgrid[,hex.colnames],
                                                       height.width.ratio = as.numeric((st_bbox(ts.hexgrid)$ymax- st_bbox(ts.hexgrid)$ymin)/(st_bbox(ts.hexgrid)$xmax- st_bbox(ts.hexgrid)$xmin)),
                                                       bl.patch.hexid.centroids = bl.patch.hexid.centroids)
@@ -73,8 +68,8 @@ landscape.metrics.all.change[1: length(this.tss),] = NA
 for(i in seq_along(this.tss)){
     landscape.metrics.all.change$name[i] = this.tss[i]
     landscape.metrics.all.change[i,2:dim(landscape.metrics.all.change)[2] ] = 
-      landscape.metrics.all[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == max(this.years),3:dim(landscape.metrics)[2]] - 
-      landscape.metrics.all[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == min(this.years),3:dim(landscape.metrics)[2]] 
+      landscape.metrics.all[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == max(years.considered),3:dim(landscape.metrics)[2]] - 
+      landscape.metrics.all[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == min(years.considered),3:dim(landscape.metrics)[2]] 
     }
 
 change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
@@ -87,15 +82,15 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
                   "hex.standardised.euclid.eca") # one of these minus the next years is the difference
   
   
-  temp.grid = list(name = map_chr(all.hexgrids, "name")[map_dbl(all.hexgrids, "year") == max(this.years) & map_chr(all.hexgrids, "name") ==  this.tss[i]], # map names, index this one
-                   years = this.years, 
-                   hexgrid = all.hexgrids[[which(map_dbl(all.hexgrids, "year") == max(this.years) & map_chr(all.hexgrids, "name") ==  this.tss[i])]]$hexgrid[,dont.diff]) # map hexgrids sf, index id, geometry and area of this named ts, most recent ( same for all years)
+  temp.grid = list(name = map_chr(all.hexgrids, "name")[map_dbl(all.hexgrids, "year") == max(years.considered) & map_chr(all.hexgrids, "name") ==  this.tss[i]], # map names, index this one
+                   years = years.considered, 
+                   hexgrid = all.hexgrids[[which(map_dbl(all.hexgrids, "year") == max(years.considered) & map_chr(all.hexgrids, "name") ==  this.tss[i])]]$hexgrid[,dont.diff]) # map hexgrids sf, index id, geometry and area of this named ts, most recent ( same for all years)
   
   temp.grid$hexgrid[,(length(dont.diff)+2):(length(dont.diff) + length(col.to.diff)+1) ] = # rest cols == change from 1st to last year of this ts
     # mx year - min, as.df, indexing out ID and geometry
-    as.data.frame(all.hexgrids[[which(map_dbl(all.hexgrids, "year") == max(this.years) & 
+    as.data.frame(all.hexgrids[[which(map_dbl(all.hexgrids, "year") == max(years.considered) & 
                                         map_chr(all.hexgrids, "name") ==  this.tss[i])]]$hexgrid )[,col.to.diff ] -
-    as.data.frame(all.hexgrids[[which(map_dbl(all.hexgrids, "year") == min(this.years) & 
+    as.data.frame(all.hexgrids[[which(map_dbl(all.hexgrids, "year") == min(years.considered) & 
                                         map_chr(all.hexgrids, "name") ==  this.tss[i])]]$hexgrid )[,col.to.diff ]
   temp.grid$height.width.ratio = as.numeric((st_bbox(temp.grid$hexgrid)$ymax- st_bbox(temp.grid$hexgrid)$ymin)/(st_bbox(temp.grid$hexgrid)$xmax- st_bbox(temp.grid$hexgrid)$xmin))
 
@@ -185,46 +180,46 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
 ggsave(
   filename = paste0(func.conect.path, 
                     "\\analysis outputs\\.maps\\",
-  "Treescapes_", paste(this.years, collapse = "_"),"_hex.ECA.pdf"), 
+  "Treescapes_", paste(years.considered, collapse = "_"),"_hex.ECA.pdf"), 
   plot = marrangeGrob(eca.hexmap, nrow=1, ncol=1, top = NULL), 
   width = stand.plot.width , height = stand.plot.height
 )
 
     ## plotly for each individual map ----  
-    eca.hexmap.plotly <- lapply(seq_along(all.hexgrids), FUN = function(i) {
-      plotly_build(ggplotly(eca.hexmap[[i]], tooltip = "text", 
-                            dynamicTicks = T) %>%
-                     config(displayModeBar = FALSE) %>% layout(hoverlabel = list(align = "left")))
-      # 
-      # all.hexgrids[[i]] = append(all.hexgrids[[i]], print(eca.hexmap) ) %>%
-      #   append(., print(eca.hexmap.plotly) )
-    })
+    # eca.hexmap.plotly <- lapply(seq_along(all.hexgrids), FUN = function(i) {
+    #   plotly_build(ggplotly(eca.hexmap[[i]], tooltip = "text", 
+    #                         dynamicTicks = T) %>%
+    #                  config(displayModeBar = FALSE) %>% layout(hoverlabel = list(align = "left")))
+    #   # 
+    #   # all.hexgrids[[i]] = append(all.hexgrids[[i]], print(eca.hexmap) ) %>%
+    #   #   append(., print(eca.hexmap.plotly) )
+    # })
     
     
 # COMPARISON PLOTS -  ggplot list comparison.eca.hexmap ----
 comparison.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
   joint.title = paste("Bigger, better, more joined up: Functional connectivity of native woodland")#, nice.names[i])
-  sub.title01 = paste0("Landscape ECA(PC) = ",landscape.metrics.all$leastcost.ECA[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == min(this.years)]  %>%  round( digits = 0) %>% format( big.mark = ","), " ha")
-  sub.title02 = paste0("Landscape ECA(PC) = ",landscape.metrics.all$leastcost.ECA[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == max(this.years)]  %>%  round( digits = 0) %>% format( big.mark = ","), " ha")
+  sub.title01 = paste0("Landscape ECA(PC) = ",landscape.metrics.all$leastcost.ECA[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == min(years.considered)]  %>%  round( digits = 0) %>% format( big.mark = ","), " ha")
+  sub.title02 = paste0("Landscape ECA(PC) = ",landscape.metrics.all$leastcost.ECA[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == max(years.considered)]  %>%  round( digits = 0) %>% format( big.mark = ","), " ha")
 
-  comparison.plot = ggarrange( eca.hexmap[map(all.hexgrids, "name") == this.tss[i] & map(all.hexgrids, "year") == min(this.years)][[1]]+
-                                 labs(title = min(this.years), subtitle = sub.title01),
-                               eca.hexmap[map(all.hexgrids, "name") == this.tss[i] & map(all.hexgrids, "year") == max(this.years)][[1]]+
-                                 labs(title = max(this.years), subtitle = sub.title02),
+  comparison.plot = ggarrange( eca.hexmap[map(all.hexgrids, "name") == this.tss[i] & map(all.hexgrids, "year") == min(years.considered)][[1]]+
+                                 labs(title = min(years.considered), subtitle = sub.title01),
+                               eca.hexmap[map(all.hexgrids, "name") == this.tss[i] & map(all.hexgrids, "year") == max(years.considered)][[1]]+
+                                 labs(title = max(years.considered), subtitle = sub.title02),
                                ncol = 2, common.legend = TRUE, legend = "bottom") %>%
     annotate_figure(top = text_grob(joint.title, face = "bold", size = 11))
   
   # ggsave(comparison.plot, filename = paste0(gis.wd, 
-  #                                           "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", this.tss[i], "\\comparison_", min(this.years), "_", max(this.years), "_hex.ECA.pdf"),
+  #                                           "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", this.tss[i], "\\comparison_", min(years.considered), "_", max(years.considered), "_hex.ECA.pdf"),
   #        height = 5  , width = 2 * stand.plot.width *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)))
   
   # hotfix 12.07.22 - to make these more accessible.. hope it works, if no revert to above
-  ggsave(comparison.plot, filename = paste0(gis.wd, 
-                                            "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\.maps\\treescape comparison\\", min(this.years), "_", max(this.years), "_", this.tss[i], "_hex.ECA.pdf"),
+  ggsave(comparison.plot, filename = paste0(func.conect.path, 
+                                            "\\analysis outputs\\.maps\\treescape comparison\\", min(years.considered), "_", max(years.considered), "_", this.tss[i], "_hex.ECA.pdf"),
          height = stand.plot.height  , width = stand.plot.width * 2 *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)))
 
-  ggsave(comparison.plot, filename = paste0(gis.wd, 
-                                 "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\.maps\\treescape comparison\\", min(this.years), "_", max(this.years), "_", this.tss[i], "_hex.ECA.png"),
+  ggsave(comparison.plot, filename = paste0(func.conect.path, 
+                                            "\\analysis outputs\\.maps\\treescape comparison\\", min(years.considered), "_", max(years.considered), "_", this.tss[i], "_hex.ECA.png"),
          height = stand.plot.height  , width = stand.plot.width * 2 *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)), dpi = 900, bg = "white")
   
   comparison.plot
@@ -235,15 +230,8 @@ comparison.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
 change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
   # variables ----
   hot.fix = 1 # logical - had full loop been run since 6/6/2022 when hotfix of bug in hex median cost put in
-  # hotfix cost.scale.factor- 
-  eycott = read.csv(paste0(gis.wd, "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\hab costs and edge effects Eycott 2011.csv"))
-  eycott$guy.cost[eycott$guy.cost == 1000] = 50 # hot fix - saltwater guy cost too high (1000), messes with scaling of costs (need to be scaled to not have range of 1000s to make algorithm run nice), here I make it more reasonable
-  dispers.costs <- data.frame(hab = eycott$hab,
-                              hab.num = eycott$hab.num %>% as.factor(),
-                              ecolog.cost = eycott$guy.cost,
-                              edge.extent = eycott$eycott.edge.extent
-  )
-    cost.scale.factor = max(dispers.costs$ecolog.cost)/5
+  # hotfix constants$cost.scale.factor- 
+    constants$cost.scale.factor = max(dispers.costs$ecolog.cost)/5
   # delete above when hotfix not needed
   
   var.name = "hex.standardised.leastcost.eca" # small hex area scales for
@@ -291,7 +279,7 @@ change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
                                               bigmark.round.pos(tot.aw.patch.ha-tot.awedge.patch.ha), " ha ancient woodland ) <br>",
                                               "Negative edge habitat = ", bigmark.round.pos(tot.edge.patch.ha), " ha (", 
                                               bigmark.round.pos(tot.awedge.patch.ha), " ha ancient woodland ) <br>",
-                                              "Mean landscape permiability = ", bigmark.round.pos(mean.scaled.ecolog.cost.not.sea * (hot.fix*cost.scale.factor), 2)
+                                              "Mean landscape permiability = ", bigmark.round.pos(mean.scaled.ecolog.cost.not.sea * (hot.fix*constants$cost.scale.factor), 2)
                           )), HTML)
     ), colour = "black", size = hex.line.size) +
     scale_fill_gradient2(name = fill.scale.title,
@@ -333,14 +321,14 @@ change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
 })
 
 ## plotly change maps ----  
-change.eca.hexmap.plotly <- lapply(seq_along(this.tss), FUN = function(i) {
-  plotly_build(ggplotly(change.eca.hexmap[[i]], tooltip = "text", 
-                        dynamicTicks = T) %>%
-                 config(displayModeBar = FALSE) %>% layout(hoverlabel = list(align = "left")))
+# change.eca.hexmap.plotly <- lapply(seq_along(this.tss), FUN = function(i) {
+#   plotly_build(ggplotly(change.eca.hexmap[[i]], tooltip = "text", 
+#                         dynamicTicks = T) %>%
+#                  config(displayModeBar = FALSE) %>% layout(hoverlabel = list(align = "left")))
   # 
   # all.hexgrids[[i]] = append(all.hexgrids[[i]], print(eca.hexmap) ) %>%
   #   append(., print(eca.hexmap.plotly) )
-})
+# })
 
 # SAVE objects ----
 save(landscape.metrics.all,
