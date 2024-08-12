@@ -1,11 +1,15 @@
 ---
 title: "Exploring species dispersal"
 author: "Ewan McHenry"
-format: html
+format: 
+  html:
+    code-fold: true
 editor: visual
+execute:
+  warning: false
 ---
 
-```{r libraries and data}
+```{r libraries and data, include = FALSE}
 
 
 # exploration of species dispersal data
@@ -39,9 +43,11 @@ dsp_df = read.csv("Data\\species_dispersal_data_woodland.csv")
 
 Data set on species dispersal distances from literature review, shared by Tom Travers. Species native or currently residing in Britain, representing a broad range of dispersal distances.
 
+Includes plants and animals. Notably, "movement" of plants may not be quite appropriate here, being much lower than the potential to disperse e.g. between patches. The distances provided here seem more in keeping with vegetative growth. Plants also produce many more propogules than animals, so the "average" may not be as important in a landscape context. For functional connectivity, dispersal of pollen may also be considered important, connecting populations, but not colonising new patches.
+
 ## Curation
 
-Where mean dispersal distance it is reported, where not available median dispersal distance is reported. Where neither are available, the maximum dispersal distance is used to estimate median dispersal distance[^1].
+Where mean dispersal distance it is reported, where not available median dispersal distance is reported. Where neither are available, the maximum dispersal distance is used to estimate median dispersal distance[^1]. Maximum dispersal distance is used where it is recorded, or failing that, calculated using the mean (and failing that median) dispersal distances, using the same process.
 
 [^1]: Query: here is a list of species, add a comma after each and a logical variable defining whether or not each species is associated with trees or woodland habitat
 
@@ -58,37 +64,53 @@ sapply(dsp_df, function(x) sum(!is.na(x)))
 
 dsp_df$used.median <- is.na(dsp_df$mean_movement) & !is.na(dsp_df$median_movement)
 dsp_df$used.max <- is.na(dsp_df$mean_movement) & is.na(dsp_df$median_movement)& !is.na(dsp_df$max_movement)
-dsp_df$method <- NA
-dsp_df$method[!is.na(dsp_df$mean_movement)] <- "mean"
-dsp_df$method[is.na(dsp_df$mean_movement) & !is.na(dsp_df$median_movement)] <- "median"
-dsp_df$method[is.na(dsp_df$mean_movement) & is.na(dsp_df$median_movement)& !is.na(dsp_df$max_movement)] <- "max"
 
+dsp_df$av.method <- NA
+dsp_df$av.method[!is.na(dsp_df$mean_movement)] <- "mean"
+dsp_df$av.method[is.na(dsp_df$av.method) & !is.na(dsp_df$median_movement)] <- "median"
+dsp_df$av.method[is.na(dsp_df$av.method) & !is.na(dsp_df$max_movement)] <- "max"
 
-dsp_df$nu.move <-  dsp_df$mean_movement
-dsp_df$nu.move[is.na(dsp_df$nu.move)] <- dsp_df$median_movement[is.na(dsp_df$nu.move)]
-dsp_df$nu.move[is.na(dsp_df$nu.move)] <- (-log(0.5)/
-                                           ((-log(0.05))/
-                                              dsp_df$max_movement[is.na(dsp_df$nu.move)]
-                                             )
-                                          )
+dsp_df$max.method <- NA
+dsp_df$max.method[!is.na(dsp_df$max_movement)] <- "max"
+dsp_df$max.method[is.na(dsp_df$max.method) & !is.na(dsp_df$mean_movement) ] <- "mean"
+dsp_df$max.method[is.na(dsp_df$max.method) & !is.na(dsp_df$median_movement)] <- "median"
+
+#hierarchical selection of average movement estimates
+dsp_df$nu.move <-  dsp_df$mean_movement # mean where it exists
+dsp_df$nu.move[is.na(dsp_df$nu.move)] <- dsp_df$median_movement[is.na(dsp_df$nu.move)] # median where mean is missing
+alpha <-  -log(0.05)/(dsp_df$max_movement) # tune an alpha based on max
+dsp_df$nu.move[is.na(dsp_df$nu.move)] <- -log(0.5)/alpha[is.na(dsp_df$nu.move)] # use alpha parameter where mean and median missing
+dsp_df$nu.move <- round(dsp_df$nu.move)
+
+#hierarchical selection of max movement estimates
+dsp_df$nu.max <-  dsp_df$max_movement # max where its availible
+alpha <-  -log(0.5)/(dsp_df$nu.move) # tune an alpha based on averages (above)
+dsp_df$nu.max[is.na(dsp_df$nu.max)] <- -log(0.05)/alpha[is.na(dsp_df$nu.max)]
 
 ```
 
+## Species dispersal information - table
 ```{r table of species dispersal information}
 # table of species dispersal information
 
 dsp_df %>% 
   select(common_name, full_species, class, 
          gpt_wood_hab, 
-         nu.move, max_movement, method#,
+         nu.move, nu.max,, 
+         av.method, max.method #,
          #used.median, used.max
          ) %>%
+  mutate(nu.move = round(nu.move),
+         nu.max = round(nu.max)) %>%
   rename("species" = "full_species",
          "Comon name" = "common_name",
          "Woodland associated" = "gpt_wood_hab",
          "Average movement (m)" = "nu.move",
-         "Max movement (m)" = "max_movement",
-         "Class" = "class") %>%
+         "Max movement (m)" = "nu.max",
+         "Class" = "class",
+         "Average method" = "av.method",
+         "Max method" = "max.method"
+         ) %>%
   datatable(extensions = c('FixedColumns',"FixedHeader"),
               options = list(scrollX = T,
                              scrollY = "400px",
@@ -103,7 +125,14 @@ dsp_df %>%
 
 ```
 
+# Species dispersal distances - plots
+
+## Woodland species
+
 Taking the median movement where there are multiple entries for the same species, and plotting the range as a line. Only looking at species with movement of \< 3000 m.
+
+::: panel-tabset
+### Average movement
 
 ```{r}
 # plot movement data WITH SPECIES LABELLED
@@ -122,6 +151,7 @@ plot <- dsp_df %>%
             move.upper = max(nu.move, na.rm = TRUE),
             move.lower = min(nu.move, na.rm = TRUE),
             move.sd = sd(nu.move, na.rm = TRUE),
+            nu.max = max(nu.max, na.rm = TRUE),
             class = class[1],
             common_name = common_name[1],
             ) %>%
@@ -133,8 +163,10 @@ plot <- dsp_df %>%
              shape = 21,
              aes(text = map(
                 paste0("<b>", common_name, "</b>",
-                       "<br> movement: ", round(movement), " m<br>(",
-                       round(move.lower), " - ", round(move.upper), ")"), 
+                       "<br><b>Average movement:</b> ", round(movement), " m (",
+                       round(move.lower), " - ", round(move.upper), ")",
+                       "<br><b>Max movement:</b> ", round(nu.max), " m "
+                       ), 
                              HTML),
                   fill = class),
              position= position_jitter()
@@ -148,14 +180,11 @@ plot <- dsp_df %>%
     legend.position="none",
     plot.title = element_text(size=11)
   ) +
-  ggtitle("Species movement") +
-  xlab("Distance (m)") +
+  ggtitle("Average species movement") +
+  xlab("Average Distance (m)") +
   ylab("Species class")
 
 plot
-
-
-
 
 ```
 
@@ -168,6 +197,124 @@ ggplotly(plot, tooltip = "text", dynamicTicks = T) %>%
 
 ```
 
+### Max movement
+
 ```{r}
+# plot movement data WITH SPECIES LABELLED
+# hover text using ggplotly()
+# point distribution jittered verticle
+
+move.cap <- 3000
+
+# Interactive plot
+plot <- dsp_df %>% 
+  filter(woodland.tree.associated == 1,
+         nu.move < move.cap
+         ) %>%
+  group_by(species) %>%
+  summarise(movement = median(nu.move, na.rm = TRUE),
+            move.upper = max(nu.move, na.rm = TRUE),
+            move.lower = min(nu.move, na.rm = TRUE),
+            move.sd = sd(nu.move, na.rm = TRUE),
+            nu.max = max(nu.max, na.rm = TRUE),
+            class = class[1],
+            common_name = common_name[1],
+            ) %>%
+  ggplot( aes(y=class, x=nu.max, fill=class)) +
+  geom_boxplot(outlier.colour = NULL) +
+  scale_fill_viridis(discrete = TRUE, alpha=0.6) +
+  
+  geom_point(size=2, alpha=0.9, 
+             shape = 21,
+             aes(text = map(
+                paste0("<b>", common_name, "</b>",
+                       "<br><b>Average movement:</b> ", round(movement), " m (",
+                       round(move.lower), " - ", round(move.upper), ")",
+                       "<br><b>Max movement:</b> ", round(nu.max), " m "
+                       ), 
+                             HTML),
+                  fill = class),
+             position= position_jitter()
+             ) +
+  # geom_errorbarh(aes(xmin = movement - move.sd, xmax = movement + move.sd,
+  #                    colour = class), height = 0.1,
+  #                position=ggstance::position_dodgev(height=0.9)
+  #                ) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("Max species movement") +
+  xlab("Max distance (m)") +
+  ylab("Species class")
+
+plot
+
+```
+
+Interactive plot
+
+```{r}
+ggplotly(plot, tooltip = "text", dynamicTicks = T) %>% 
+  config(displayModeBar = F)
+  
+
+```
+:::
+
+# Dispersal kernals
+
+
+```{r}
+
+prob.set = 0.5
+# distances with prob.suc
+dispers.eg = data.frame(
+  distance =c(200, 500, 1000, 2000, 3000)
+)
+dispers.eg$alpha =-log(prob.set)/dispers.eg$distance 
+dispers.eg$dis.95 = -log(0.05)/dispers.eg$alpha
+
+kernal.sets <- data.frame( distance = 
+rep(seq(from = 0, to = max(dispers.eg$distance), by = 10),dim(dispers.eg)[1]))
+kernal.sets$alpha = rep(dispers.eg$alpha, each = dim(kernal.sets)[1]/dim(dispers.eg)[1])
+kernal.sets$prob = exp(-kernal.sets$alpha * kernal.sets$distance)
+kernal.sets$median_disp = -log(0.5)/kernal.sets$alpha
+
+dispers.eg %>% 
+select(distance, dis.95) %>% 
+mutate(distance = round(distance),
+       dis.95 = round(dis.95)) %>%
+  rename("Median effective dispersal distance (m)" = "distance",
+         "Maximum dispersal (5th percentile)" = "dis.95"
+) %>%
+  datatable(extensions = c('FixedColumns',"FixedHeader"),
+              options = list(scrollX = T,
+                             scrollY = "400px",
+                             paging = F,
+                             fixedHeader=F,
+                             dom = 't',
+                             fixedColumns = list(leftColumns = 1) 
+                             ),
+            rownames = F) 
+
+
+
+# line plot of kernals for each distance
+kernal.sets %>%
+  ggplot(aes(x=distance, y=prob, group = factor(median_disp), colour = factor(median_disp))) +
+  geom_line() +
+  theme_ipsum() +
+  theme(
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("Dispersal kernals") +
+  xlab("Distance (m)") +
+  ylab("Probability of success")+
+  scale_colour_discrete(name = "Median effective dispersal distance (m)")
+
+
+
 
 ```
