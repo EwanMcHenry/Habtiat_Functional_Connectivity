@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.553">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ewan McHenry">
+
+<title>Exploring species dispersal</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Species dispersal parameter exploration_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Species dispersal parameter exploration_files/libs/quarto-html/quarto.js"></script>
+<script src="Species dispersal parameter exploration_files/libs/quarto-html/popper.min.js"></script>
+<script src="Species dispersal parameter exploration_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Species dispersal parameter exploration_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Species dispersal parameter exploration_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Species dispersal parameter exploration_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Species dispersal parameter exploration_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Species dispersal parameter exploration_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Species dispersal parameter exploration_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="Species dispersal parameter exploration_files/libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+
+<link href="Species dispersal parameter exploration_files/libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
+
+<script src="Species dispersal parameter exploration_files/libs/datatables-binding-0.31/datatables.js"></script>
+
+<script src="Species dispersal parameter exploration_files/libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+
+<link href="Species dispersal parameter exploration_files/libs/dt-core-1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+
+<link href="Species dispersal parameter exploration_files/libs/dt-core-1.13.6/css/jquery.dataTables.extra.css" rel="stylesheet">
+
+<script src="Species dispersal parameter exploration_files/libs/dt-core-1.13.6/js/jquery.dataTables.min.js"></script>
+
+<link href="Species dispersal parameter exploration_files/libs/dt-ext-fixedcolumns-1.13.6/css/fixedColumns.dataTables.min.css" rel="stylesheet">
+
+<script src="Species dispersal parameter exploration_files/libs/dt-ext-fixedcolumns-1.13.6/js/dataTables.fixedColumns.min.js"></script>
+
+<link href="Species dispersal parameter exploration_files/libs/dt-ext-fixedheader-1.13.6/css/fixedHeader.dataTables.min.css" rel="stylesheet">
+
+<script src="Species dispersal parameter exploration_files/libs/dt-ext-fixedheader-1.13.6/js/dataTables.fixedHeader.min.js"></script>
+
+<link href="Species dispersal parameter exploration_files/libs/nouislider-7.0.10/jquery.nouislider.min.css" rel="stylesheet">
+
+<script src="Species dispersal parameter exploration_files/libs/nouislider-7.0.10/jquery.nouislider.min.js"></script>
+
+<link href="Species dispersal parameter exploration_files/libs/selectize-0.12.0/selectize.bootstrap3.css" rel="stylesheet">
+
+<script src="Species dispersal parameter exploration_files/libs/selectize-0.12.0/selectize.min.js"></script>
+
+<link href="Species dispersal parameter exploration_files/libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+
+<script src="Species dispersal parameter exploration_files/libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
+
+<script src="Species dispersal parameter exploration_files/libs/plotly-binding-4.10.3/plotly.js"></script>
+
+<script src="Species dispersal parameter exploration_files/libs/typedarray-0.1/typedarray.min.js"></script>
+
+<link href="Species dispersal parameter exploration_files/libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+
+<script src="Species dispersal parameter exploration_files/libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Exploring species dispersal</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Ewan McHenry </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># exploration of species dispersal data</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># libraries</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plotly)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr)<span class="co">#publr</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(htmlwidgets)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(htmltools)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(hrbrthemes)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(viridis)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DT)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)  <span class="co"># Ensure purrr is loaded for the map function</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># data ----</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># copy data from directory to repo</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>original_data_dir <span class="ot">&lt;-</span> <span class="st">"D:</span><span class="sc">\\</span><span class="st">Users</span><span class="sc">\\</span><span class="st">Ewan McHenry</span><span class="sc">\\</span><span class="st">OneDrive - the Woodland Trust</span><span class="sc">\\</span><span class="st">GIS</span><span class="sc">\\</span><span class="st">Data</span><span class="sc">\\</span><span class="st">Species</span><span class="sc">\\</span><span class="st">species dispersal data</span><span class="sc">\\</span><span class="st">species_dispersal_data_woodland.csv"</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">file.copy</span>(original_data_dir, <span class="st">"Data"</span>, <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load data</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>dsp_df <span class="ot">=</span> <span class="fu">read.csv</span>(<span class="st">"Data</span><span class="sc">\\</span><span class="st">species_dispersal_data_woodland.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Data set on species dispersal distances from literature review, shared by Tom Travers. Species native or currently residing in Britain, representing a broad range of dispersal distances.</p>
+<p>Includes plants and animals. Notably, “movement” of plants may not be quite appropriate here, being much lower than the potential to disperse e.g.&nbsp;between patches. The distances provided here seem more in keeping with vegetative growth. Plants also produce many more propogules than animals, so the “average” may not be as important in a landscape context. For functional connectivity, dispersal of pollen may also be considered important, connecting populations, but not colonising new patches.</p>
+<section id="curation" class="level2">
+<h2 class="anchored" data-anchor-id="curation">Curation</h2>
+<p>Where mean dispersal distance it is reported, where not available median dispersal distance is reported. Where neither are available, the maximum dispersal distance is used to estimate median dispersal distance<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Maximum dispersal distance is used where it is recorded, or failing that, calculated using the mean (and failing that median) dispersal distances, using the same process.</p>
+<p>Each species was categorised as woodland associated or not by running through chat gpt<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+</section>
+<section id="species-dispersal-information---table" class="level2">
+<h2 class="anchored" data-anchor-id="species-dispersal-information---table">Species dispersal information - table</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># table of species dispersal information</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>dsp_df <span class="sc">%&gt;%</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(common_name, full_species, class, </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>         gpt_wood_hab, </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>         nu.move, nu.max,, </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>         av.method, max.method <span class="co">#,</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>         <span class="co">#used.median, used.max</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nu.move =</span> <span class="fu">round</span>(nu.move),</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">nu.max =</span> <span class="fu">round</span>(nu.max)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="st">"species"</span> <span class="ot">=</span> <span class="st">"full_species"</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>         <span class="st">"Comon name"</span> <span class="ot">=</span> <span class="st">"common_name"</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>         <span class="st">"Woodland associated"</span> <span class="ot">=</span> <span class="st">"gpt_wood_hab"</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>         <span class="st">"Average movement (m)"</span> <span class="ot">=</span> <span class="st">"nu.move"</span>,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>         <span class="st">"Max movement (m)"</span> <span class="ot">=</span> <span class="st">"nu.max"</span>,</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>         <span class="st">"Class"</span> <span class="ot">=</span> <span class="st">"class"</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>         <span class="st">"Average method"</span> <span class="ot">=</span> <span class="st">"av.method"</span>,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>         <span class="st">"Max method"</span> <span class="ot">=</span> <span class="st">"max.method"</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">datatable</span>(<span class="at">extensions =</span> <span class="fu">c</span>(<span class="st">'FixedColumns'</span>,<span class="st">"FixedHeader"</span>),</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>              <span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> T,</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>                             <span class="at">scrollY =</span> <span class="st">"400px"</span>,</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>                             <span class="at">paging =</span> F,</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>                             <span class="at">fixedHeader=</span>F,</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>                             <span class="at">dom =</span> <span class="st">'t'</span>,</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>                             <span class="at">fixedColumns =</span> <span class="fu">list</span>(<span class="at">leftColumns =</span> <span class="dv">1</span>) </span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>                             ),</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>            <span class="at">rownames =</span> F,</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>            <span class="at">filter=</span><span class="st">"top"</span>, <span class="at">selection=</span><span class="st">"multiple"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">formatStyle</span>( <span class="at">columns =</span> <span class="fu">c</span>(<span class="st">"Comon name"</span>), <span class="at">fontWeight =</span> <span class="st">'bold'</span>, <span class="st">`</span><span class="at">text-align</span><span class="st">`</span> <span class="ot">=</span> <span class="st">'left'</span>, <span class="st">"white-space"</span> <span class="ot">=</span> <span class="st">"nowrap"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-5c8940a8cb60648082b9" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-5c8940a8cb60648082b9">{"x":{"filter":"top","vertical":false,"filterHTML":"<tr>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"0\" data-max=\"38600\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"0\" data-max=\"302000\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n<\/tr>","extensions":["FixedColumns","FixedHeader"],"data":[["red_fox","red_fox","red_fox","red_fox","red_fox","european_hare","red_fox","red_fox","red_fox","Common raven","red_fox","Eurasian collared dove","red_fox","Grey heron","Merlin","Northern goshawk","Eurasian blackcap","red_fox","red_fox","Lesser whitethroat","Mute swan","Grey wagtail","Long-eared owl","European pied flycatcher","Common kestrel","Peregrine falcon","eurasian_otter","Common buzzard","Common swift","red_fox","red_fox","Hen harrier","Black-headed gull","Western barn owl","leisler's_bat","red_fox","wild_boar","red_fox","red_fox","Eurasian sparrowhawk","Sand martin","stag beetle","Mallard","Sedge warbler","Great spotted woodpecker","Eurasian reed warbler","White wagtail","silver_spotted_skipper","western yellow wagtail","Eurasian coot","red_fox","eurasian_badger","eurasian_badger","Common redstart","smooth_snake","common_wall_lizard","Spotted flycatcher","Little owl","Carrion crow","Barn swallow","Common house martin","Common kingfisher","red_fox","Stock dove","Common whitethroat","red_fox","stoat","Coal tit","natterjack_toad","Lesser black-backed gull","Northern wheatear","Common wood pigeon","Long-tailed tit","Willow warbler","the aspen hoverfly","the aspen hoverfly","Western jackdaw","Tawny owl","European green woodpecker","Yellowhammer","Rook","Eurasian nuthatch","water_vole","stag beetle","White-throated dipper","European goldfinch","Mistle thrush","european honey bee","European turtle dove","Eurasian wren","Common starling","grey_squirrel","hedgehog","Willow tit","Eurasian magpie","adder","Canada goose","European greenfinch","Common reed bunting","Eurasian bullfinch","Great tit","Eurasian blue tit","Common chaffinch","Eurasian tree sparrow","Eurasian jay","Common linnet","hazel_dormouse","european_hare","Song thrush","common_shrew","European robin","Common moorhen","stoat","marbled white","house_mouse","Dunnock","hazel_dormouse","Eurasian skylark","Common blackbird","great capricorn beetle","great_crested_newt","duke_of_burgundy","rusty click beetle","House sparrow","small skipper","common_frog","common_toad","viviparous_lizard","wood_mouse","bank_vole","tansy beetle","slow-worm","field_vole","field_vole","common_vole","two-spot ladybird","the large pine weevil","black pine bark beetle","european_hare","water_vole","red-haired pine bark beetle","european_hare","water_vole","european_hare","water_vole","smooth_newt","great capricorn beetle","ground_cricket","ground_cricket","european_hare","european_hare","european_hare","eurasian_otter","eurasian_badger","eurasian_badger","common_vole","house_mouse","house_mouse","bechstein's_bat","bechstein's_bat","grey_squirrel","grey_squirrel","common_shrew","wild_boar","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","red_fox","yarrow","sneezewort","ground elder","fool's parsley","agrimony","field garlic","wild garlic","wild angelica","cow parsley","thale cress","thrift","wolf's bane","common mugwort","common milkweed","common milkweed","bittercress","common daisy","oilseed rape","black mustard","wild cabbage","common heather","harebell","shepherd's purse","hairy bittercress","narrowleaf bittercress","cuckooflower","welted thistle","sheep thistle","cornflower","brown knapweed","greater knapweed","lesser gentian","white helleborine","field chickweed","mouse-ear chickweed","small toadflax","greater celandine","common chicory","creeping thistle","meadow thistle","marsh thistle","spear thistle","old man's beard","hemlock","wild carrot","foxglove","teasel","common sundew","great willowherb","broad-leaved willowherb","marsh willowherb","hoary willowherb","bell heather","green spurge","chiltern gentian","doves-foot crane's-bill","herb robert","dove's-foot Crane's-bill","bristly oxtongue","hogweed","orange hawk bit","common hawkweed","perforate st. john's-wort","square stemmed st. john's-wort","catsear","meadow fleabane","sheep's bit","milk thistle","oxeye daisy","common toadflax","fairy flax","purple loosestrife","pineapple weed","common melilot","annual mercury","dog's mercury","annual mercury","field forget-me-not","water forget-me-not","sweet chervil","catnip","red bartsia","common evening-primrose","cotton thistle","wood sorrel","common poppy","parsnip","broadleaf plantain","common milkwort","creeping cinquefoil","oxlip","cowslip","common fleabane","meadow buttercup","wild raddish","yellow rattle","common sorrel","water dock","broad-leaved dock","salad burnet","figwort","ragwort","groundsel","red campion","ragged-robin","white campion","canada goldenrod","common sowthistle","common starwort","common chickweed","common tansy","dandelion","meadow salsify","hare's-foot clover","coltsfoot","great mullein","field pansy","heath dog-violet","purple violet","wood violet","common dog-violet","raspberry","bulrush","creeping bentgrass","sweet vernal grass","barren brome","drooping brome","pill sedge","couch grass","yorkshire fog","toad rush","soft rush","field wood-rush","wood bluegrass","common meadow-grass","lesser bulrush","sycamore","hornbeam","common hazel","common hawthorn","common beech","ash","holly","walnut","larch","spruce","scots pine","wild cherry","black cherry","douglas fir","sessile oak","english oak","white willow","small-leaved lime","large-leaved lime","wych elm","english elm"],["vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","lepus europaeus","vulpes vulpes","vulpes vulpes","vulpes vulpes","corvus corax","vulpes vulpes","streptopelia decaocto","vulpes vulpes","ardea cinerea","falco columbarius","accipiter gentilis","sylvia atricapilla","vulpes vulpes","vulpes vulpes","sylvia curruca","cygnus olor","motacilla cinerea","asio otus","ficedula hypoleuca","falco tinnunculus","falco peregrinus","lutra lutra","buteo buteo","apus apus","vulpes vulpes","vulpes vulpes","circus cyaneus","larus ridibundus","tyto alba","nyctalus leisleri","vulpes vulpes","sus scrofa","vulpes vulpes","vulpes vulpes","accipiter nisus","riparia riparia","lucanus cervus","anas platyrhynchos","acrocephalus schoenobaenus","dendrocopos major","acrocephalus scirpaceus","motacilla alba","hesperia comma","motacilla ava","fulica atra","vulpes vulpes","meles meles","meles meles","phoenicurus phoenicurus","coronella austriaca","podarcis muralis","muscicapa striata","athene noctua","corvus corone","hirundo rustica","delichon urbica","alcedo atthis","vulpes vulpes","columba oenas","sylvia communis","vulpes vulpes","mustela erminea","parus ater","epidalea calamita","larus fuscus","oenanthe oenanthe","columba palumbus","aegithalos caudatus","phylloscopus trochilus","hammerschmidtia ferruginea","hammerschmidtia ferruginea","corvus monedula","strix aluco","picus viridis","emberiza citrinella","corvus frugilegus","sitta europaea","arvicola amphibius","lucanus cervus","cinclus cinclus","carduelis carduelis","turdus viscivorus","apis mellifera","streptopelia turtur","troglodytes troglodytes","sturnus vulgaris","sciurus carolinensis","erinaceus europaeus","parus montanus","pica pica","Vipera berus","branta canadensis","carduelis chloris","emberiza schoeniclus","pyrrhula pyrrhula","parus major","parus caeruleus","fringilla coelebs","passer montanus","garrulus glandarius","carduelis cannabina","muscardinus avellanarius","lepus europaeus","turdus philomelos","sorex araneus","erithacus rubecula","gallinula chloropus","mustela erminea","melanargia galathea","mus musculus","prunella modularis","muscardinus avellanarius","alauda arvensis","turdus merula","cerambyx cerdo","triturus cristatus","hamearis lucina","elater ferrugineus","passer domesticus","thymelicus sylvestris","rana temporaria","bufo bufo","zootoca vivipara","apodemus sylvaticus","myodes glareolus","chrysolina graminis","anguis fragilis","microtus agrestis","microtus agrestis","microtus arvalis","adalia bipunctata","hylobius abietis","hylastes ater","lepus europaeus","arvicola amphibius","hylurgus ligniperda","lepus europaeus","arvicola amphibius","lepus europaeus","arvicola amphibius","lissotriton vulgaris","cerambyx cerdo","nemobius sylvestris","nemobius sylvestris","lepus europaeus","lepus europaeus","lepus europaeus","lutra lutra","meles meles","meles meles","microtus arvalis","mus musculus","mus musculus","myotis bechsteinii","myotis bechsteinii","sciurus carolinensis","sciurus carolinensis","sorex araneus","sus scrofa","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","vulpes vulpes","Achillea millefolium","Achillea ptarmica","Aegopodium podagraria","Aethusa cynapium","Agrimonia eupatoria","Allium oleraceum","Allium ursinum","Angelica sylvestris","Anthriscus sylvestris","Arabidopsis thaliana","Armeria maritima","Arnica montana","Artemisia vulgaris","Asclepias syriaca","Asclepias syriaca","Barbarea vulgaris","Bellis perennis","Brassica napus","Brassica nigra","Brassica oleracea","Calluna vulgaris","Campanula rotundifolia","Capsella bursa-pastoris","Cardamine hirsuta","Cardamine impatiens","Cardamine pratensis","Carduus acanthoides","Carduus tenuiflorus","Centaurea cyanus","Centaurea jacea","Centaurea scabiosa","Centaurium pulchellum","Cephalanthera damasonium","Cerastium arvense","Cerastium fontanum","chaenorhinum minus","Chelidonium majus","Cichorium intybus","Cirsium arvense","Cirsium dissectum","Cirsium palustre","Cirsium vulgare","Clematis vitalba","Conium maculatum","Daucus carota","Digitalis purpurea","Dipsacus fullonum","Drosera rotundifolia","Epilobium hirsutum","Epilobium montanum","Epilobium palustre","Epilobium parviflorum","erica cinerea","Euphorbia esula","gentianella germanica","Geranium molle","Geranium robertianum","geranium molle","Helminthotheca echioides","Heracleum sphondylium","Hieracium aurantiacum","Hieracium vulgatum","Hypericum perforatum","Hypericum tetrapterum","Hypochoeris radicata","Inula britannica","Jasione montana","Lactuca serriola","Leucanthemum vulgare","Linaria vulgaris","Linum catharticum","Lythrum salicaria","Matricaria matricarioides","Melilotus officinalis","Mercurialis annua","Mercurialis perennis","mercurialis annua","Myosotis arvensis","Myosotis scorpioides","Myrrhis odorata","Nepeta cataria","Odontites vernus","Oenothera biennis","Onopordum acanthium","Oxalis acetosella","Papaver rhoeas","Pastinaca sativa","Plantago major","Polygala vulgaris","Potentilla reptans","Primula elatior","Primula veris","Pulicaria dysenterica","Ranunculus acris","Raphanus raphanistrum","rhinanthus minor","Rumex acetosa","Rumex hydrolapathum","Rumex obtusifolius","Sanguisorba minor","Scrophularia nodosa","Senecio jacobaea","Senecio vulgaris","Silene dioica","Silene flos-cuculi","Silene latifolia subsp. alba","Solidago altissima","Sonchus oleraceus","Stellaria graminea","Stellaria media","Tanacetum vulgare","Taraxacum officinale","Tragopogon pratensis","Trifolium arvense","Tussilago farfara","Verbascum thapsus","Viola arvensis","Viola canina","Viola cucullata","Viola odorata","Viola riviniana","Rubus idaeus","Typha latifolia","Agrostis stolonifera","Anthoxanthum odoratum","Bromus sterilis","Bromus tectorum","carex pilulifera","Elymus repens","Holcus lanatus","Juncus bufonius","Juncus effusus","Luzula campestris","Poa nemoralis","Poa pratensis","Typha angustifolia","Acer pseudoplatanus","Carpinus betulus","Corylus avellana","crataegus monogyna","fagus sylvatica","Fraxinus excelsior","Ilex aquifolium","Juglans regia","Larix decidua","Picea abies","Pinus sylvestris","Prunus avium","Prunus serotina","Pseudotsuga menziesii","Quercus petraea","Quercus robor","Salix alba","Tilia cordata","Tilia platyphyllos","Ulmus glabra","Ulmus procera"],["mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","aves","mammalia","aves","mammalia","aves","aves","aves","aves","mammalia","mammalia","aves","aves","aves","aves","aves","aves","aves","mammalia","aves","aves","mammalia","mammalia","aves","aves","aves","mammalia","mammalia","mammalia","mammalia","mammalia","aves","aves","insecta","aves","aves","aves","aves","aves","insecta","aves","aves","mammalia","mammalia","mammalia","aves","reptilia","reptilia","aves","aves","aves","aves","aves","aves","mammalia","aves","aves","mammalia","mammalia","aves","amphibia","aves","aves","aves","aves","aves","insecta","insecta","aves","aves","aves","aves","aves","aves","mammalia","insecta","aves","aves","aves","insecta","aves","aves","aves","mammalia","mammalia","aves","aves","reptilia","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","mammalia","mammalia","aves","mammalia","aves","aves","mammalia","insecta","mammalia","aves","mammalia","aves","aves","insecta","amphibia","insecta","insecta","aves","insecta","amphibia","amphibia","reptilia","mammalia","mammalia","insecta","reptilia","mammalia","mammalia","mammalia","insecta","insecta","insecta","mammalia","mammalia","insecta","mammalia","mammalia","mammalia","mammalia","amphibia","insecta","insecta","insecta","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","graminoid","graminoid","graminoid","graminoid","graminoid","graminoid","graminoid","graminoid","graminoid","graminoid","graminoid","graminoid","graminoid","graminoid","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree"],[" FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," TRUE"," TRUE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," TRUE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," TRUE"," FALSE"," FALSE"," TRUE"," TRUE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," FALSE"," TRUE"," TRUE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," FALSE"," TRUE"," TRUE"," FALSE"," TRUE"," FALSE"," FALSE"," TRUE"," FALSE"," TRUE"," TRUE"," FALSE"," TRUE"," TRUE"," TRUE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," TRUE"," TRUE"," FALSE"," TRUE"," FALSE"," TRUE"," FALSE"," TRUE"," TRUE"," TRUE"," FALSE"," TRUE"," FALSE"," FALSE"," TRUE"," TRUE"," FALSE"," TRUE"," TRUE"," TRUE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," TRUE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," FALSE"," TRUE"," FALSE"," FALSE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"," TRUE"],[38600,35000,34200,31200,31000,30000,29800,29612,28600,25835,25330,25036,24200,24078,22245,18839,17539,17400,17300,16886,16772,15802,15421,14272,14005,13497,13000,12096,11466,11100,10780,10730,10527,10323,10000,9978,9448,8400,7900,6654,6650,6196,6058,6020,5875,5215,5164,5000,4948,4444,4426,4400,4230,3879,3511,3511,3377,3267,3240,3194,3185,3175,3100,3035,2815,2800,2730,2597,2463,2384,2353,2277,2176,2172,2166,2166,2127,2121,2049,2026,1964,1803,1800,1719,1678,1663,1490,1303,1300,1170,1100,1100,1099,1063,1033,1011,969,954,952,852,797,796,787,717,702,694,598,1523,591,581,571,536,510,500,436,380,375,302,264,258,254,250,242,206,200,184,180,161,131,131,100,69,66,58,43,26,18510,6386,2057,1203,1157,3002,602,2040,null,195,185,19,19,2743,1967,2082,15734,400,414,24,26,20,2314,6941,23138,74,201,13651,32393,25452,6330,1203,5553,32393,15664,926,19829,14068,11569,3170,4396,12032,25452,15016,19899,14207,20731,28228,0,0,0,0,216,0,1,1,28,0,0,0,1,35,11,0,0,93,0,0,19,0,8,0,0,1,3,0,0,0,0,0,3,0,0,32,19,0,12,2,5,208,23,0,4,0,0,0,879,11,1689,16,19,6,0,1,0,1,0,1,0,0,0,0,440,4,0,2,0,0,0,0,0,0,3,1,0,0,0,0,0,0,1,0,1,0,3,9,56,2,0,0,2,69,0,4,0,0,1,0,0,3,278,0,0,0,3,3,0,0,1,143,440,0,926,3,1,1,0,16,1,208,1249,14,0,5,4,0,10,79,23,1,0,12,6,508,1157,98,3471,98,9,30,98,46,40,347,463,514,6,185,69,3,1504,86,78,81,76],[166826,153000,147810,134844,210180,8920,128793,162866,123607,111657,302000,108204,3400,104063,96141,81421,75802,75202,2200,72980,72487,68295,66648,61683,60529,58333,17000,52278,49555,47973,107830,46374,45497,44615,61600,83847,32500,36304,34143,28758,28741,26779,26182,26018,25391,22539,22318,9000,21385,19207,8047,7800,8300,16765,6600,1000,14595,14120,14003,13804,13765,13722,13398,13117,12166,12101,5500,11224,4411,10303,10169,9841,9405,9387,5000,3000,9193,9167,8856,8756,8488,7792,8000,7429,7252,7187,6440,4500,5619,5057,4754,3230,3780,4594,4465,1900,4188,4123,4114,3682,3445,3440,3401,3099,3034,2999,840,6582,2554,2000,2468,2317,1000,3000,1500,1642,400,1305,1141,1700,1290,4000,1600,890,1000,2214,4000,300,450,450,856,130,193,159,186,400,80000,27600,17353,5200,5000,12974,2600,8817,null,844,800,60,25,11855,8500,9000,68000,1729,1789,102,112,85,10000,30000,100000,320,869,59000,140000,110000,27359,5200,24000,140000,67700,4000,85700,60800,50000,13700,19000,52000,110000,64900,86000,61400,89600,122000,0,1,1,2,932,0,5,4,120,0,0,1,2,150,46,0,0,400,0,0,80,0,35,1,2,2,14,2,0,1,2,0,15,1,0,138,80,1,53,9,23,900,100,1,17,1,2,1,3800,50,7300,69,80,25,1,6,2,3,1,6,2,1,1,0,1900,19,1,7,0,1,1,1,0,0,14,4,1,0,0,2,0,0,5,1,5,0,14,38,240,7,0,0,7,300,0,19,1,1,2,0,1,14,1200,0,0,1,15,13,0,0,2,620,1900,1,4000,13,2,5,2,70,5,900,5400,61,2,20,18,1,42,340,100,2,0,50,25,2194,5000,425,15000,425,38,130,425,200,171,1500,2000,2220,25,800,300,12,6500,373,339,351,330],["mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","median","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","max","max","median","max","max","median","max","median",null,"max","max","median","median","median","max","max","max","median","median","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max"],["mean","max","mean","mean","max","max","mean","max","mean","mean","max","mean","max","mean","mean","mean","mean","mean","max","mean","mean","mean","mean","mean","mean","mean","max","mean","mean","mean","max","mean","mean","mean","max","max","max","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","max","mean","mean","max","max","max","mean","max","max","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","max","mean","max","mean","mean","mean","mean","mean","max","max","mean","mean","mean","mean","mean","mean","max","mean","mean","mean","mean","max","mean","mean","mean","max","max","mean","mean","max","mean","mean","mean","mean","mean","mean","mean","mean","mean","mean","max","median","mean","max","mean","mean","max","max","max","mean","max","mean","mean","max","max","max","max","mean","max","max","max","max","max","max","max","max","max","max","mean","max","max","max","max","max","max","median","max","median",null,"max","max","max","max","median","max","max","max","median","median","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max","max"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Comon name<\/th>\n      <th>species<\/th>\n      <th>Class<\/th>\n      <th>Woodland associated<\/th>\n      <th>Average movement (m)<\/th>\n      <th>Max movement (m)<\/th>\n      <th>Average method<\/th>\n      <th>Max method<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","paging":false,"fixedHeader":false,"dom":"t","fixedColumns":{"leftColumns":1},"columnDefs":[{"className":"dt-right","targets":[4,5]},{"name":"Comon name","targets":0},{"name":"species","targets":1},{"name":"Class","targets":2},{"name":"Woodland associated","targets":3},{"name":"Average movement (m)","targets":4},{"name":"Max movement (m)","targets":5},{"name":"Average method","targets":6},{"name":"Max method","targets":7}],"order":[],"autoWidth":false,"orderClasses":false,"orderCellsTop":true,"rowCallback":"function(row, data, displayNum, displayIndex, dataIndex) {\nvar value=data[0]; $(this.api().cell(row, 0).node()).css({'font-weight':'bold','text-align':'left','white-space':'nowrap'});\n}"},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":["options.rowCallback"],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+<section id="species-dispersal-distances---plots" class="level1">
+<h1>Species dispersal distances - plots</h1>
+<section id="woodland-species" class="level2">
+<h2 class="anchored" data-anchor-id="woodland-species">Woodland species</h2>
+<p>Taking the median movement where there are multiple entries for the same species, and plotting the range as a line. Only looking at species with movement of &lt; 3000 m.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Average movement</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Max movement</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot movement data WITH SPECIES LABELLED</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># hover text using ggplotly()</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># point distribution jittered verticle</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>move.cap <span class="ot">&lt;-</span> <span class="dv">3000</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Interactive plot</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>plot <span class="ot">&lt;-</span> dsp_df <span class="sc">%&gt;%</span> </span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(woodland.tree.associated <span class="sc">==</span> <span class="dv">1</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>         nu.move <span class="sc">&lt;</span> move.cap</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(species) <span class="sc">%&gt;%</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">movement =</span> <span class="fu">median</span>(nu.move, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">move.upper =</span> <span class="fu">max</span>(nu.move, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">move.lower =</span> <span class="fu">min</span>(nu.move, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">move.sd =</span> <span class="fu">sd</span>(nu.move, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">nu.max =</span> <span class="fu">max</span>(nu.max, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>            <span class="at">class =</span> class[<span class="dv">1</span>],</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">common_name =</span> common_name[<span class="dv">1</span>],</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>            ) <span class="sc">%&gt;%</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>( <span class="fu">aes</span>(<span class="at">y=</span>class, <span class="at">x=</span>movement, <span class="at">fill=</span>class)) <span class="sc">+</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.colour =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis</span>(<span class="at">discrete =</span> <span class="cn">TRUE</span>, <span class="at">alpha=</span><span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size=</span><span class="dv">2</span>, <span class="at">alpha=</span><span class="fl">0.9</span>, </span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> <span class="dv">21</span>,</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">text =</span> <span class="fu">map</span>(</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>                <span class="fu">paste0</span>(<span class="st">"&lt;b&gt;"</span>, common_name, <span class="st">"&lt;/b&gt;"</span>,</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>                       <span class="st">"&lt;br&gt;&lt;b&gt;Average movement:&lt;/b&gt; "</span>, <span class="fu">round</span>(movement), <span class="st">" m ("</span>,</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">round</span>(move.lower), <span class="st">" - "</span>, <span class="fu">round</span>(move.upper), <span class="st">")"</span>,</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>                       <span class="st">"&lt;br&gt;&lt;b&gt;Max movement:&lt;/b&gt; "</span>, <span class="fu">round</span>(nu.max), <span class="st">" m "</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>                       ), </span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>                             HTML),</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> class),</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>             <span class="at">position=</span> <span class="fu">position_jitter</span>()</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>             ) <span class="sc">+</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_errorbarh(aes(xmin = movement - move.sd, xmax = movement + move.sd,</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                    colour = class), height = 0.1,</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                position=ggstance::position_dodgev(height=0.9)</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                ) +</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ipsum</span>() <span class="sc">+</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position=</span><span class="st">"none"</span>,</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">11</span>)</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Average species movement"</span>) <span class="sc">+</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Average Distance (m)"</span>) <span class="sc">+</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Species class"</span>)</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Species-dispersal-parameter-exploration_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Interactive plot</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplotly</span>(plot, <span class="at">tooltip =</span> <span class="st">"text"</span>, <span class="at">dynamicTicks =</span> T) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">config</span>(<span class="at">displayModeBar =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item" id="htmlwidget-b8ee0a5cafbcd7c03825" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-b8ee0a5cafbcd7c03825">{"x":{"data":[{"x":[2121,2597,571,797,2172,264,954,2176,1803,2277,591,702,787,890,796,380,852,2049,1170,1300,1490],"y":["aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves"],"hoverinfo":"y","type":"box","fillcolor":"rgba(68,1,84,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"aves","legendgroup":"aves","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[1249,12],"y":["graminoid","graminoid"],"hoverinfo":"y","type":"box","fillcolor":"rgba(65,68,135,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"graminoid","legendgroup":"graminoid","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[1,0,16,1,0,3,0,0,19,0,1,0,1,0,232],"y":["herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb"],"hoverinfo":"y","type":"box","fillcolor":"rgba(42,120,142,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"herb","legendgroup":"herb","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[2166,221.5,1157,250,19,1303,1719],"y":["insecta","insecta","insecta","insecta","insecta","insecta","insecta"],"hoverinfo":"y","type":"box","fillcolor":"rgba(34,168,132,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"insecta","legendgroup":"insecta","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[587,2314,1203,486.5,131,1099,407,131],"y":["mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia"],"hoverinfo":"y","type":"box","fillcolor":"rgba(122,209,81,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"mammalia","legendgroup":"mammalia","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[86,514,98,78,76,1157,69,46,81,30,98,1504,98,3,9],"y":["tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree"],"hoverinfo":"y","type":"box","fillcolor":"rgba(253,231,37,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"tree","legendgroup":"tree","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[2121.3208385778589,2596.7185872551054,796.18341222088782,2175.6376861155031,954.09649732299147,786.87221184968951,1803.1557870106772,701.62001584619281,796.68901294246314,263.80540714822712,379.9295975966379,890.36873999368402,2277.1983648043124,591.1029204990715,851.93931541889901,571.025959344022,2171.8130880115555,1169.9970284730196,1299.7231338365004,2048.9145164866,1490.0833598736674],"y":["aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves"],"text":["<b>Tawny owl<\/b><br><b>Average movement:<\/b> 2121 m (2121 - 2121)<br><b>Max movement:<\/b> 9167 m ","<b>Coal tit<\/b><br><b>Average movement:<\/b> 2597 m (2597 - 2597)<br><b>Max movement:<\/b> 11224 m ","<b>Eurasian blue tit<\/b><br><b>Average movement:<\/b> 796 m (796 - 796)<br><b>Max movement:<\/b> 3440 m ","<b>Long-tailed tit<\/b><br><b>Average movement:<\/b> 2176 m (2176 - 2176)<br><b>Max movement:<\/b> 9405 m ","<b>European greenfinch<\/b><br><b>Average movement:<\/b> 954 m (954 - 954)<br><b>Max movement:<\/b> 4123 m ","<b>Common chaffinch<\/b><br><b>Average movement:<\/b> 787 m (787 - 787)<br><b>Max movement:<\/b> 3401 m ","<b>Eurasian nuthatch<\/b><br><b>Average movement:<\/b> 1803 m (1803 - 1803)<br><b>Max movement:<\/b> 7792 m ","<b>Eurasian jay<\/b><br><b>Average movement:<\/b> 702 m (702 - 702)<br><b>Max movement:<\/b> 3034 m ","<b>Great tit<\/b><br><b>Average movement:<\/b> 797 m (797 - 797)<br><b>Max movement:<\/b> 3445 m ","<b>Common blackbird<\/b><br><b>Average movement:<\/b> 264 m (264 - 264)<br><b>Max movement:<\/b> 1141 m ","<b>Dunnock<\/b><br><b>Average movement:<\/b> 380 m (380 - 380)<br><b>Max movement:<\/b> 1642 m ","<b>Willow tit<\/b><br><b>Average movement:<\/b> 890 m (717 - 1063)<br><b>Max movement:<\/b> 4594 m ","<b>Common wood pigeon<\/b><br><b>Average movement:<\/b> 2277 m (2277 - 2277)<br><b>Max movement:<\/b> 9841 m ","<b>Song thrush<\/b><br><b>Average movement:<\/b> 591 m (591 - 591)<br><b>Max movement:<\/b> 2554 m ","<b>Eurasian bullfinch<\/b><br><b>Average movement:<\/b> 852 m (852 - 852)<br><b>Max movement:<\/b> 3682 m ","<b>European robin<\/b><br><b>Average movement:<\/b> 571 m (571 - 571)<br><b>Max movement:<\/b> 2468 m ","<b>Willow warbler<\/b><br><b>Average movement:<\/b> 2172 m (2172 - 2172)<br><b>Max movement:<\/b> 9387 m ","<b>Eurasian wren<\/b><br><b>Average movement:<\/b> 1170 m (1170 - 1170)<br><b>Max movement:<\/b> 5057 m ","<b>European turtle dove<\/b><br><b>Average movement:<\/b> 1300 m (1300 - 1300)<br><b>Max movement:<\/b> 5619 m ","<b>European green woodpecker<\/b><br><b>Average movement:<\/b> 2049 m (2049 - 2049)<br><b>Max movement:<\/b> 8856 m ","<b>Mistle thrush<\/b><br><b>Average movement:<\/b> 1490 m (1490 - 1490)<br><b>Max movement:<\/b> 6440 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(68,1,84,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"aves","legendgroup":"aves","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1249.0007812520489,12.033185889944434],"y":["graminoid","graminoid"],"text":["<b>bulrush<\/b><br><b>Average movement:<\/b> 1249 m (1249 - 1249)<br><b>Max movement:<\/b> 5400 m ","<b>wood bluegrass<\/b><br><b>Average movement:<\/b> 12 m (12 - 12)<br><b>Max movement:<\/b> 50 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(65,68,135,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"graminoid","legendgroup":"graminoid","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0.83750874567776923,2.9944158434867858,-0.39601472895592454,-0.11191027443856,-0.099468679539859273,19.109550942480563,-0.18532961476594212,16.251816796138883,0.8784766336902976,0.2596887785941363,0.63618869818747048,0.26917422097176313,231.87966267894953,1.0245923845097422,0.18547159601002927],"y":["herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb"],"text":["<b>wood sorrel<\/b><br><b>Average movement:<\/b> 1 m (1 - 1)<br><b>Max movement:<\/b> 5 m ","<b>white helleborine<\/b><br><b>Average movement:<\/b> 3 m (3 - 3)<br><b>Max movement:<\/b> 15 m ","<b>red campion<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 0 m ","<b>oxlip<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 0 m ","<b>ragged-robin<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 0 m ","<b>greater celandine<\/b><br><b>Average movement:<\/b> 19 m (19 - 19)<br><b>Max movement:<\/b> 80 m ","<b>figwort<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 1 m ","<b>wood violet<\/b><br><b>Average movement:<\/b> 16 m (16 - 16)<br><b>Max movement:<\/b> 70 m ","<b>dog's mercury<\/b><br><b>Average movement:<\/b> 1 m (1 - 1)<br><b>Max movement:<\/b> 4 m ","<b>foxglove<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 1 m ","<b>common dog-violet<\/b><br><b>Average movement:<\/b> 1 m (1 - 1)<br><b>Max movement:<\/b> 5 m ","<b>herb robert<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 2 m ","<b>wild angelica<\/b><br><b>Average movement:<\/b> 232 m (1 - 463)<br><b>Max movement:<\/b> 2000 m ","<b>wild garlic<\/b><br><b>Average movement:<\/b> 1 m (1 - 1)<br><b>Max movement:<\/b> 5 m ","<b>cowslip<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 0 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(42,120,142,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"herb","legendgroup":"herb","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[221.50717502292247,1718.8991714213043,2166.0140692880377,1156.8545134313404,249.90846557784826,1303.2225895492361,19.045531051978468],"y":["insecta","insecta","insecta","insecta","insecta","insecta","insecta"],"text":["<b>great capricorn beetle<\/b><br><b>Average movement:<\/b> 222 m (185 - 258)<br><b>Max movement:<\/b> 1700 m ","<b>stag beetle<\/b><br><b>Average movement:<\/b> 1719 m (1719 - 1719)<br><b>Max movement:<\/b> 7429 m ","<b>the aspen hoverfly<\/b><br><b>Average movement:<\/b> 2166 m (2166 - 2166)<br><b>Max movement:<\/b> 5000 m ","<b>red-haired pine bark beetle<\/b><br><b>Average movement:<\/b> 1157 m (1157 - 1157)<br><b>Max movement:<\/b> 5000 m ","<b>duke_of_burgundy<\/b><br><b>Average movement:<\/b> 250 m (250 - 250)<br><b>Max movement:<\/b> 4000 m ","<b>european honey bee<\/b><br><b>Average movement:<\/b> 1303 m (1303 - 1303)<br><b>Max movement:<\/b> 4500 m ","<b>ground_cricket<\/b><br><b>Average movement:<\/b> 19 m (19 - 19)<br><b>Max movement:<\/b> 60 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(34,168,132,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"insecta","legendgroup":"insecta","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[486.23411545362325,2313.6695421990007,587.09454805403948,1099.1163785118611,130.66166931577027,406.96089786216618,131.05485308710485,1202.7403751442209],"y":["mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia"],"text":["<b>hazel_dormouse<\/b><br><b>Average movement:<\/b> 486 m (375 - 598)<br><b>Max movement:<\/b> 840 m ","<b>bechstein's_bat<\/b><br><b>Average movement:<\/b> 2314 m (2314 - 2314)<br><b>Max movement:<\/b> 10000 m ","<b>grey_squirrel<\/b><br><b>Average movement:<\/b> 587 m (74 - 1100)<br><b>Max movement:<\/b> 3230 m ","<b>hedgehog<\/b><br><b>Average movement:<\/b> 1099 m (1099 - 1099)<br><b>Max movement:<\/b> 3780 m ","<b>bank_vole<\/b><br><b>Average movement:<\/b> 131 m (131 - 131)<br><b>Max movement:<\/b> 450 m ","<b>eurasian_badger<\/b><br><b>Average movement:<\/b> 407 m (400 - 414)<br><b>Max movement:<\/b> 1789 m ","<b>wood_mouse<\/b><br><b>Average movement:<\/b> 131 m (131 - 131)<br><b>Max movement:<\/b> 450 m ","<b>red_fox<\/b><br><b>Average movement:<\/b> 1203 m (926 - 2800)<br><b>Max movement:<\/b> 12101 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(122,209,81,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"mammalia","legendgroup":"mammalia","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1504.1449204705655,513.97242510002104,98.228116794861847,86.051927075535062,30.112999940849839,81.314527383446688,69.254396478086704,77.895267958380288,75.647950203530485,1156.7538862207905,45.827508112601933,98.395182106830177,98.043657599203286,3.130907564237714,9.3861891008913521],"y":["tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree"],"text":["<b>white willow<\/b><br><b>Average movement:<\/b> 1504 m (1504 - 1504)<br><b>Max movement:<\/b> 6500 m ","<b>wild cherry<\/b><br><b>Average movement:<\/b> 514 m (514 - 514)<br><b>Max movement:<\/b> 2220 m ","<b>hornbeam<\/b><br><b>Average movement:<\/b> 98 m (98 - 98)<br><b>Max movement:<\/b> 425 m ","<b>small-leaved lime<\/b><br><b>Average movement:<\/b> 86 m (86 - 86)<br><b>Max movement:<\/b> 373 m ","<b>ash<\/b><br><b>Average movement:<\/b> 30 m (30 - 30)<br><b>Max movement:<\/b> 130 m ","<b>wych elm<\/b><br><b>Average movement:<\/b> 81 m (81 - 81)<br><b>Max movement:<\/b> 351 m ","<b>sessile oak<\/b><br><b>Average movement:<\/b> 69 m (69 - 69)<br><b>Max movement:<\/b> 300 m ","<b>large-leaved lime<\/b><br><b>Average movement:<\/b> 78 m (78 - 78)<br><b>Max movement:<\/b> 339 m ","<b>english elm<\/b><br><b>Average movement:<\/b> 76 m (76 - 76)<br><b>Max movement:<\/b> 330 m ","<b>sycamore<\/b><br><b>Average movement:<\/b> 1157 m (1157 - 1157)<br><b>Max movement:<\/b> 5000 m ","<b>walnut<\/b><br><b>Average movement:<\/b> 46 m (46 - 46)<br><b>Max movement:<\/b> 200 m ","<b>holly<\/b><br><b>Average movement:<\/b> 98 m (98 - 98)<br><b>Max movement:<\/b> 425 m ","<b>common hawthorn<\/b><br><b>Average movement:<\/b> 98 m (98 - 98)<br><b>Max movement:<\/b> 425 m ","<b>english oak<\/b><br><b>Average movement:<\/b> 3 m (3 - 3)<br><b>Max movement:<\/b> 12 m ","<b>common beech<\/b><br><b>Average movement:<\/b> 9 m (9 - 9)<br><b>Max movement:<\/b> 38 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(253,231,37,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"tree","legendgroup":"tree","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":86.402656704026569,"r":39.850560398505614,"b":86.841012868410132,"l":124.3669572436696},"font":{"color":"rgba(0,0,0,1)","family":"Arial Narrow","size":15.276048152760483},"title":{"text":"<b> Average species movement <\/b>","font":{"color":"rgba(0,0,0,1)","family":"Arial Narrow","size":14.611872146118724},"x":0,"xref":"paper"},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":true,"range":[-130.2658154654037,2726.8698007364478],"tickmode":"auto","ticktext":["0","1000","2000"],"tickvals":[0,1000,2000],"categoryorder":"array","categoryarray":["0","1000","2000"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.8190120381901207,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"Arial Narrow","size":15.276048152760483},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(204,204,204,1)","gridwidth":0.265670402656704,"zeroline":false,"anchor":"y","title":{"text":"Average Distance (m)","font":{"color":"rgba(0,0,0,1)","family":"Arial Narrow","size":11.955168119551683}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"category","autorange":true,"range":[0.40000000000000002,6.5999999999999996],"tickmode":"auto","ticktext":["aves","graminoid","herb","insecta","mammalia","tree"],"tickvals":[1,2,3,3.9999999999999996,5,6],"categoryorder":"array","categoryarray":["aves","graminoid","herb","insecta","mammalia","tree"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.8190120381901207,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"Arial Narrow","size":15.276048152760483},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(204,204,204,1)","gridwidth":0.26567040265670405,"zeroline":false,"anchor":"x","title":{"text":"Species class","font":{"color":"rgba(0,0,0,1)","family":"Arial Narrow","size":11.955168119551683}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":null,"bordercolor":null,"borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"Arial Narrow","size":12.220838522208389}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false,"displayModeBar":false},"source":"A","attrs":{"37184425204":{"x":{},"y":{},"fill":{},"type":"box"},"37185211ecc":{"x":{},"y":{},"fill":{},"text":{}}},"cur_data":"37184425204","visdat":{"37184425204":["function (y) ","x"],"37185211ecc":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot movement data WITH SPECIES LABELLED</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># hover text using ggplotly()</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># point distribution jittered verticle</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>move.cap <span class="ot">&lt;-</span> <span class="dv">3000</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Interactive plot</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>plot <span class="ot">&lt;-</span> dsp_df <span class="sc">%&gt;%</span> </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(woodland.tree.associated <span class="sc">==</span> <span class="dv">1</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>         nu.move <span class="sc">&lt;</span> move.cap</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>         ) <span class="sc">%&gt;%</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(species) <span class="sc">%&gt;%</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">movement =</span> <span class="fu">median</span>(nu.move, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">move.upper =</span> <span class="fu">max</span>(nu.move, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">move.lower =</span> <span class="fu">min</span>(nu.move, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">move.sd =</span> <span class="fu">sd</span>(nu.move, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">nu.max =</span> <span class="fu">max</span>(nu.max, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>            <span class="at">class =</span> class[<span class="dv">1</span>],</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">common_name =</span> common_name[<span class="dv">1</span>],</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>            ) <span class="sc">%&gt;%</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>( <span class="fu">aes</span>(<span class="at">y=</span>class, <span class="at">x=</span>nu.max, <span class="at">fill=</span>class)) <span class="sc">+</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.colour =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis</span>(<span class="at">discrete =</span> <span class="cn">TRUE</span>, <span class="at">alpha=</span><span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size=</span><span class="dv">2</span>, <span class="at">alpha=</span><span class="fl">0.9</span>, </span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> <span class="dv">21</span>,</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">text =</span> <span class="fu">map</span>(</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>                <span class="fu">paste0</span>(<span class="st">"&lt;b&gt;"</span>, common_name, <span class="st">"&lt;/b&gt;"</span>,</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>                       <span class="st">"&lt;br&gt;&lt;b&gt;Average movement:&lt;/b&gt; "</span>, <span class="fu">round</span>(movement), <span class="st">" m ("</span>,</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>                       <span class="fu">round</span>(move.lower), <span class="st">" - "</span>, <span class="fu">round</span>(move.upper), <span class="st">")"</span>,</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>                       <span class="st">"&lt;br&gt;&lt;b&gt;Max movement:&lt;/b&gt; "</span>, <span class="fu">round</span>(nu.max), <span class="st">" m "</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>                       ), </span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>                             HTML),</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> class),</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>             <span class="at">position=</span> <span class="fu">position_jitter</span>()</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>             ) <span class="sc">+</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_errorbarh(aes(xmin = movement - move.sd, xmax = movement + move.sd,</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                    colour = class), height = 0.1,</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                position=ggstance::position_dodgev(height=0.9)</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>  <span class="co">#                ) +</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ipsum</span>() <span class="sc">+</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position=</span><span class="st">"none"</span>,</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">11</span>)</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Max species movement"</span>) <span class="sc">+</span></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Max distance (m)"</span>) <span class="sc">+</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Species class"</span>)</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Species-dispersal-parameter-exploration_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Interactive plot</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplotly</span>(plot, <span class="at">tooltip =</span> <span class="st">"text"</span>, <span class="at">dynamicTicks =</span> T) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">config</span>(<span class="at">displayModeBar =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item" id="htmlwidget-5f63d40f5c33768b2428" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-5f63d40f5c33768b2428">{"x":{"data":[{"x":[9166.8094892560966,11224.04726242248,2467.8209421806841,3444.5766916252278,9387.2278220953503,1140.9890170502636,4123.1194025225432,9404.5155344749001,7792.4363550819144,9841.0302720585241,2554.2595040784308,3033.9935226109287,3401.357410676354,4594.2095648652657,3440.2547635303404,1642.3326760571977,3682.2827368440326,8855.6306664242056,5056.6558710182144,5618.5065233535706,6439.6728613821697],"y":["aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves"],"hoverinfo":"y","type":"box","fillcolor":"rgba(68,1,84,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"aves","legendgroup":"aves","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[5400,50],"y":["graminoid","graminoid"],"hoverinfo":"y","type":"box","fillcolor":"rgba(65,68,135,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"graminoid","legendgroup":"graminoid","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[4.5199999999999996,0.91000000000000003,70,4,1.1499999999999999,14.67,0.5,0.12,80,0.37,4.5999999999999996,1.6000000000000001,4.6100000000000003,0.12,2000],"y":["herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb"],"hoverinfo":"y","type":"box","fillcolor":"rgba(42,120,142,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"herb","legendgroup":"herb","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[5000,1700,5000,4000,60,4500,7429.3943951113752],"y":["insecta","insecta","insecta","insecta","insecta","insecta","insecta"],"hoverinfo":"y","type":"box","fillcolor":"rgba(34,168,132,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"insecta","legendgroup":"insecta","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[3230,10000,12101.398665684615,840,450,3780,1789.2782312833681,450],"y":["mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia"],"hoverinfo":"y","type":"box","fillcolor":"rgba(122,209,81,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"mammalia","legendgroup":"mammalia","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[373.49180000000001,2220,425.1182,339.01049999999998,330,5000,300,200,350.51029999999997,130,425,6500,425,12,37.5],"y":["tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree"],"hoverinfo":"y","type":"box","fillcolor":"rgba(253,231,37,0.6)","marker":{"opacity":null,"outliercolor":"rgba(0,0,0,1)","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"},"size":5.6692913385826778},"line":{"color":"rgba(51,51,51,1)","width":1.8897637795275593},"name":"tree","legendgroup":"tree","showlegend":true,"xaxis":"x","yaxis":"y","frame":null},{"x":[9166.810982464247,11224.050453522908,3440.2562848487091,9404.5166879343196,4123.119574358424,3401.356854389177,7792.4396316778702,3033.9973182748313,3444.573920080561,1140.9853772383324,1642.3340184307569,4594.2087537478701,9841.0279003938631,2554.2574277313461,3682.2850067600716,2467.8202109287813,9387.2276218599309,5056.6583962031273,5618.5059731914398,8855.626854959055,6439.6725843645536],"y":["aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves","aves"],"text":["<b>Tawny owl<\/b><br><b>Average movement:<\/b> 2121 m (2121 - 2121)<br><b>Max movement:<\/b> 9167 m ","<b>Coal tit<\/b><br><b>Average movement:<\/b> 2597 m (2597 - 2597)<br><b>Max movement:<\/b> 11224 m ","<b>Eurasian blue tit<\/b><br><b>Average movement:<\/b> 796 m (796 - 796)<br><b>Max movement:<\/b> 3440 m ","<b>Long-tailed tit<\/b><br><b>Average movement:<\/b> 2176 m (2176 - 2176)<br><b>Max movement:<\/b> 9405 m ","<b>European greenfinch<\/b><br><b>Average movement:<\/b> 954 m (954 - 954)<br><b>Max movement:<\/b> 4123 m ","<b>Common chaffinch<\/b><br><b>Average movement:<\/b> 787 m (787 - 787)<br><b>Max movement:<\/b> 3401 m ","<b>Eurasian nuthatch<\/b><br><b>Average movement:<\/b> 1803 m (1803 - 1803)<br><b>Max movement:<\/b> 7792 m ","<b>Eurasian jay<\/b><br><b>Average movement:<\/b> 702 m (702 - 702)<br><b>Max movement:<\/b> 3034 m ","<b>Great tit<\/b><br><b>Average movement:<\/b> 797 m (797 - 797)<br><b>Max movement:<\/b> 3445 m ","<b>Common blackbird<\/b><br><b>Average movement:<\/b> 264 m (264 - 264)<br><b>Max movement:<\/b> 1141 m ","<b>Dunnock<\/b><br><b>Average movement:<\/b> 380 m (380 - 380)<br><b>Max movement:<\/b> 1642 m ","<b>Willow tit<\/b><br><b>Average movement:<\/b> 890 m (717 - 1063)<br><b>Max movement:<\/b> 4594 m ","<b>Common wood pigeon<\/b><br><b>Average movement:<\/b> 2277 m (2277 - 2277)<br><b>Max movement:<\/b> 9841 m ","<b>Song thrush<\/b><br><b>Average movement:<\/b> 591 m (591 - 591)<br><b>Max movement:<\/b> 2554 m ","<b>Eurasian bullfinch<\/b><br><b>Average movement:<\/b> 852 m (852 - 852)<br><b>Max movement:<\/b> 3682 m ","<b>European robin<\/b><br><b>Average movement:<\/b> 571 m (571 - 571)<br><b>Max movement:<\/b> 2468 m ","<b>Willow warbler<\/b><br><b>Average movement:<\/b> 2172 m (2172 - 2172)<br><b>Max movement:<\/b> 9387 m ","<b>Eurasian wren<\/b><br><b>Average movement:<\/b> 1170 m (1170 - 1170)<br><b>Max movement:<\/b> 5057 m ","<b>European turtle dove<\/b><br><b>Average movement:<\/b> 1300 m (1300 - 1300)<br><b>Max movement:<\/b> 5619 m ","<b>European green woodpecker<\/b><br><b>Average movement:<\/b> 2049 m (2049 - 2049)<br><b>Max movement:<\/b> 8856 m ","<b>Mistle thrush<\/b><br><b>Average movement:<\/b> 1490 m (1490 - 1490)<br><b>Max movement:<\/b> 6440 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(68,1,84,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"aves","legendgroup":"aves","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[5399.9970813712271,49.996167780749502],"y":["graminoid","graminoid"],"text":["<b>bulrush<\/b><br><b>Average movement:<\/b> 1249 m (1249 - 1249)<br><b>Max movement:<\/b> 5400 m ","<b>wood bluegrass<\/b><br><b>Average movement:<\/b> 12 m (12 - 12)<br><b>Max movement:<\/b> 50 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(65,68,135,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"graminoid","legendgroup":"graminoid","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[4.5161775393132118,14.67194375795871,0.50339029126800616,0.11742888545431179,0.37204099728353335,79.996963942417878,0.90940352920070289,69.997767113098874,3.9994185096863655,1.153591509556398,4.5965310227610168,1.5984692982789128,2000.0020002127551,4.6093805401381109,0.11672930092923321],"y":["herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb","herb"],"text":["<b>wood sorrel<\/b><br><b>Average movement:<\/b> 1 m (1 - 1)<br><b>Max movement:<\/b> 5 m ","<b>white helleborine<\/b><br><b>Average movement:<\/b> 3 m (3 - 3)<br><b>Max movement:<\/b> 15 m ","<b>red campion<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 0 m ","<b>oxlip<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 0 m ","<b>ragged-robin<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 0 m ","<b>greater celandine<\/b><br><b>Average movement:<\/b> 19 m (19 - 19)<br><b>Max movement:<\/b> 80 m ","<b>figwort<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 1 m ","<b>wood violet<\/b><br><b>Average movement:<\/b> 16 m (16 - 16)<br><b>Max movement:<\/b> 70 m ","<b>dog's mercury<\/b><br><b>Average movement:<\/b> 1 m (1 - 1)<br><b>Max movement:<\/b> 4 m ","<b>foxglove<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 1 m ","<b>common dog-violet<\/b><br><b>Average movement:<\/b> 1 m (1 - 1)<br><b>Max movement:<\/b> 5 m ","<b>herb robert<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 2 m ","<b>wild angelica<\/b><br><b>Average movement:<\/b> 232 m (1 - 463)<br><b>Max movement:<\/b> 2000 m ","<b>wild garlic<\/b><br><b>Average movement:<\/b> 1 m (1 - 1)<br><b>Max movement:<\/b> 5 m ","<b>cowslip<\/b><br><b>Average movement:<\/b> 0 m (0 - 0)<br><b>Max movement:<\/b> 0 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(42,120,142,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"herb","legendgroup":"herb","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1699.997838197738,7429.3975290784338,5000.003634832673,4999.9969786860511,4000.0033771311323,4499.9980379067529,60.003388251733035],"y":["insecta","insecta","insecta","insecta","insecta","insecta","insecta"],"text":["<b>great capricorn beetle<\/b><br><b>Average movement:<\/b> 222 m (185 - 258)<br><b>Max movement:<\/b> 1700 m ","<b>stag beetle<\/b><br><b>Average movement:<\/b> 1719 m (1719 - 1719)<br><b>Max movement:<\/b> 7429 m ","<b>the aspen hoverfly<\/b><br><b>Average movement:<\/b> 2166 m (2166 - 2166)<br><b>Max movement:<\/b> 5000 m ","<b>red-haired pine bark beetle<\/b><br><b>Average movement:<\/b> 1157 m (1157 - 1157)<br><b>Max movement:<\/b> 5000 m ","<b>duke_of_burgundy<\/b><br><b>Average movement:<\/b> 250 m (250 - 250)<br><b>Max movement:<\/b> 4000 m ","<b>european honey bee<\/b><br><b>Average movement:<\/b> 1303 m (1303 - 1303)<br><b>Max movement:<\/b> 4500 m ","<b>ground_cricket<\/b><br><b>Average movement:<\/b> 19 m (19 - 19)<br><b>Max movement:<\/b> 60 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(34,168,132,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"insecta","legendgroup":"insecta","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[840.00398535324075,10000.000162637878,3229.9974942762665,3779.9965219647734,449.9979004075285,1789.2799052397288,450.00366330871731,12101.399044464248],"y":["mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia","mammalia"],"text":["<b>hazel_dormouse<\/b><br><b>Average movement:<\/b> 486 m (375 - 598)<br><b>Max movement:<\/b> 840 m ","<b>bechstein's_bat<\/b><br><b>Average movement:<\/b> 2314 m (2314 - 2314)<br><b>Max movement:<\/b> 10000 m ","<b>grey_squirrel<\/b><br><b>Average movement:<\/b> 587 m (74 - 1100)<br><b>Max movement:<\/b> 3230 m ","<b>hedgehog<\/b><br><b>Average movement:<\/b> 1099 m (1099 - 1099)<br><b>Max movement:<\/b> 3780 m ","<b>bank_vole<\/b><br><b>Average movement:<\/b> 131 m (131 - 131)<br><b>Max movement:<\/b> 450 m ","<b>eurasian_badger<\/b><br><b>Average movement:<\/b> 407 m (400 - 414)<br><b>Max movement:<\/b> 1789 m ","<b>wood_mouse<\/b><br><b>Average movement:<\/b> 131 m (131 - 131)<br><b>Max movement:<\/b> 450 m ","<b>red_fox<\/b><br><b>Average movement:<\/b> 1203 m (926 - 2800)<br><b>Max movement:<\/b> 12101 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(122,209,81,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"mammalia","legendgroup":"mammalia","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[6500.0008043321841,2219.9965287768059,425.11430532129742,373.4940894569915,130.00311873291619,350.508599744077,299.99733165450766,339.007092460053,329.99899384613519,5000.0018324204402,200.0013814575635,425.00041396332534,424.99962002612835,11.99958135563694,37.501409323500468],"y":["tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree","tree"],"text":["<b>white willow<\/b><br><b>Average movement:<\/b> 1504 m (1504 - 1504)<br><b>Max movement:<\/b> 6500 m ","<b>wild cherry<\/b><br><b>Average movement:<\/b> 514 m (514 - 514)<br><b>Max movement:<\/b> 2220 m ","<b>hornbeam<\/b><br><b>Average movement:<\/b> 98 m (98 - 98)<br><b>Max movement:<\/b> 425 m ","<b>small-leaved lime<\/b><br><b>Average movement:<\/b> 86 m (86 - 86)<br><b>Max movement:<\/b> 373 m ","<b>ash<\/b><br><b>Average movement:<\/b> 30 m (30 - 30)<br><b>Max movement:<\/b> 130 m ","<b>wych elm<\/b><br><b>Average movement:<\/b> 81 m (81 - 81)<br><b>Max movement:<\/b> 351 m ","<b>sessile oak<\/b><br><b>Average movement:<\/b> 69 m (69 - 69)<br><b>Max movement:<\/b> 300 m ","<b>large-leaved lime<\/b><br><b>Average movement:<\/b> 78 m (78 - 78)<br><b>Max movement:<\/b> 339 m ","<b>english elm<\/b><br><b>Average movement:<\/b> 76 m (76 - 76)<br><b>Max movement:<\/b> 330 m ","<b>sycamore<\/b><br><b>Average movement:<\/b> 1157 m (1157 - 1157)<br><b>Max movement:<\/b> 5000 m ","<b>walnut<\/b><br><b>Average movement:<\/b> 46 m (46 - 46)<br><b>Max movement:<\/b> 200 m ","<b>holly<\/b><br><b>Average movement:<\/b> 98 m (98 - 98)<br><b>Max movement:<\/b> 425 m ","<b>common hawthorn<\/b><br><b>Average movement:<\/b> 98 m (98 - 98)<br><b>Max movement:<\/b> 425 m ","<b>english oak<\/b><br><b>Average movement:<\/b> 3 m (3 - 3)<br><b>Max movement:<\/b> 12 m ","<b>common beech<\/b><br><b>Average movement:<\/b> 9 m (9 - 9)<br><b>Max movement:<\/b> 38 m "],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(253,231,37,0.6)","opacity":0.90000000000000002,"size":7.559055118110237,"symbol":"circle","line":{"width":1.8897637795275593,"color":"rgba(0,0,0,1)"}},"hoveron":"points","name":"tree","legendgroup":"tree","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":86.402656704026569,"r":39.850560398505614,"b":86.841012868410132,"l":124.3669572436696},"font":{"color":"rgba(0,0,0,1)","family":"Arial Narrow","size":15.276048152760483},"title":{"text":"<b> Max species movement <\/b>","font":{"color":"rgba(0,0,0,1)","family":"Arial Narrow","size":14.611872146118724},"x":0,"xref":"paper"},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":true,"range":[-604.94738645723669,12706.463160222414],"tickmode":"auto","ticktext":["0","2500","5000","7500","10000","12500"],"tickvals":[0,2500,5000,7500,10000,12500],"categoryorder":"array","categoryarray":["0","2500","5000","7500","10000","12500"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.8190120381901207,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"Arial Narrow","size":15.276048152760483},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(204,204,204,1)","gridwidth":0.265670402656704,"zeroline":false,"anchor":"y","title":{"text":"Max distance (m)","font":{"color":"rgba(0,0,0,1)","family":"Arial Narrow","size":11.955168119551683}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"category","autorange":true,"range":[0.40000000000000002,6.5999999999999996],"tickmode":"auto","ticktext":["aves","graminoid","herb","insecta","mammalia","tree"],"tickvals":[1,2,3,3.9999999999999996,5,6],"categoryorder":"array","categoryarray":["aves","graminoid","herb","insecta","mammalia","tree"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.8190120381901207,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"Arial Narrow","size":15.276048152760483},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(204,204,204,1)","gridwidth":0.26567040265670405,"zeroline":false,"anchor":"x","title":{"text":"Species class","font":{"color":"rgba(0,0,0,1)","family":"Arial Narrow","size":11.955168119551683}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":null,"bordercolor":null,"borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"Arial Narrow","size":12.220838522208389}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false,"displayModeBar":false},"source":"A","attrs":{"37183d014e72":{"x":{},"y":{},"fill":{},"type":"box"},"3718222c7d8c":{"x":{},"y":{},"fill":{},"text":{}}},"cur_data":"37183d014e72","visdat":{"37183d014e72":["function (y) ","x"],"3718222c7d8c":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="dispersal-kernals" class="level1">
+<h1>Dispersal kernals</h1>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>prob.set <span class="ot">=</span> <span class="fl">0.5</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># distances with prob.suc</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>dispers.eg <span class="ot">=</span> <span class="fu">data.frame</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">distance =</span><span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">500</span>, <span class="dv">1000</span>, <span class="dv">2000</span>, <span class="dv">3000</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>dispers.eg<span class="sc">$</span>alpha <span class="ot">=</span><span class="sc">-</span><span class="fu">log</span>(prob.set)<span class="sc">/</span>dispers.eg<span class="sc">$</span>distance </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>dispers.eg<span class="sc">$</span>dis<span class="fl">.95</span> <span class="ot">=</span> <span class="sc">-</span><span class="fu">log</span>(<span class="fl">0.05</span>)<span class="sc">/</span>dispers.eg<span class="sc">$</span>alpha</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>kernal.sets <span class="ot">&lt;-</span> <span class="fu">data.frame</span>( <span class="at">distance =</span> </span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="fu">rep</span>(<span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="fu">max</span>(dispers.eg<span class="sc">$</span>distance), <span class="at">by =</span> <span class="dv">10</span>),<span class="fu">dim</span>(dispers.eg)[<span class="dv">1</span>]))</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>kernal.sets<span class="sc">$</span>alpha <span class="ot">=</span> <span class="fu">rep</span>(dispers.eg<span class="sc">$</span>alpha, <span class="at">each =</span> <span class="fu">dim</span>(kernal.sets)[<span class="dv">1</span>]<span class="sc">/</span><span class="fu">dim</span>(dispers.eg)[<span class="dv">1</span>])</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>kernal.sets<span class="sc">$</span>prob <span class="ot">=</span> <span class="fu">exp</span>(<span class="sc">-</span>kernal.sets<span class="sc">$</span>alpha <span class="sc">*</span> kernal.sets<span class="sc">$</span>distance)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>kernal.sets<span class="sc">$</span>median_disp <span class="ot">=</span> <span class="sc">-</span><span class="fu">log</span>(<span class="fl">0.5</span>)<span class="sc">/</span>kernal.sets<span class="sc">$</span>alpha</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>dispers.eg <span class="sc">%&gt;%</span> </span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(distance, dis<span class="fl">.95</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(<span class="at">distance =</span> <span class="fu">round</span>(distance),</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">dis.95 =</span> <span class="fu">round</span>(dis<span class="fl">.95</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="st">"Median effective dispersal distance (m)"</span> <span class="ot">=</span> <span class="st">"distance"</span>,</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>         <span class="st">"Maximum dispersal (5th percentile)"</span> <span class="ot">=</span> <span class="st">"dis.95"</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">datatable</span>(<span class="at">extensions =</span> <span class="fu">c</span>(<span class="st">'FixedColumns'</span>,<span class="st">"FixedHeader"</span>),</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>              <span class="at">options =</span> <span class="fu">list</span>(<span class="at">scrollX =</span> T,</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>                             <span class="at">scrollY =</span> <span class="st">"400px"</span>,</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>                             <span class="at">paging =</span> F,</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>                             <span class="at">fixedHeader=</span>F,</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>                             <span class="at">dom =</span> <span class="st">'t'</span>,</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>                             <span class="at">fixedColumns =</span> <span class="fu">list</span>(<span class="at">leftColumns =</span> <span class="dv">1</span>) </span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>                             ),</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>            <span class="at">rownames =</span> F) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-34245fd61a25c9593712" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-34245fd61a25c9593712">{"x":{"filter":"none","vertical":false,"extensions":["FixedColumns","FixedHeader"],"data":[[200,500,1000,2000,3000],[864,2161,4322,8644,12966]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Median effective dispersal distance (m)<\/th>\n      <th>Maximum dispersal (5th percentile)<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"scrollY":"400px","paging":false,"fixedHeader":false,"dom":"t","fixedColumns":{"leftColumns":1},"columnDefs":[{"className":"dt-right","targets":[0,1]},{"name":"Median effective dispersal distance (m)","targets":0},{"name":"Maximum dispersal (5th percentile)","targets":1}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># line plot of kernals for each distance</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>kernal.sets <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>distance, <span class="at">y=</span>prob, <span class="at">group =</span> <span class="fu">factor</span>(median_disp), <span class="at">colour =</span> <span class="fu">factor</span>(median_disp))) <span class="sc">+</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ipsum</span>() <span class="sc">+</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">11</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Dispersal kernals"</span>) <span class="sc">+</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Distance (m)"</span>) <span class="sc">+</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Probability of success"</span>)<span class="sc">+</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_discrete</span>(<span class="at">name =</span> <span class="st">"Median effective dispersal distance (m)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Species-dispersal-parameter-exploration_files/figure-html/unnamed-chunk-5-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>Query: here is a list of species, add a comma after each and a logical variable defining whether or not each species is associated with trees or woodland habitat<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Here’s the list of species, each followed by a comma and a logical variable indicating whether the species is associated with trees or woodland habitat (TRUE) or not (FALSE):<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
