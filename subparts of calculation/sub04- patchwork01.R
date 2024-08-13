@@ -14,17 +14,18 @@
 # PATCH WORK ----
 ## ID patches ----
 ### based on nehbouring clumps ---- 
-lcm.landscape[lcm.landscape == 0] = 13 # # strange 0 habitat type in NI 1990s LCM, this makes it sea
-nobl.lcm = lcm.landscape 
-nobl.lcm[lcm.landscape == 1] = NA
-bl.lcm[lcm.landscape != 1] = NA
+bl.lcm = lcm.landscape#eg.lcm19.rast25 
+bl.lcm[lcm.landscape != constants$focal.hab.num.lcm] = NA
 
-if(this.country == "Scotland" ){ # if scotland conifer withini native woodland (NWSS>50%) == patch  
-  values(bl.lcm)[values(lcm.landscape) == 2 & values(nwss.landscape) == 1] = 1
-  values(lcm.landscape)[values(lcm.landscape) == 2 & values(nwss.landscape) == 1] = 1
+nobl.lcm = lcm.landscape 
+nobl.lcm[lcm.landscape == constants$focal.hab.num.lcm] = NA
+
+if(this.country == "Scotland" & constants$focal.hab.num.lcm %in% 1:2){ # if scotland conifer withini native woodland (NWSS>50%) == patch  
+  values(bl.lcm)[values(lcm.landscape) == 2 & values(nwss.landscape) == 1] = constants$focal.hab.num.lcm # conifer is focal habitat in scotland
+  values(lcm.landscape)[values(lcm.landscape) == 2 & values(nwss.landscape) == 1] = constants$focal.hab.num.lcm
 }
 
-bl.buff <- buffr (bl.lcm, distance = buffer.for.patchid, units = "geographic", target_value = 1) # buffer neighbouring patches
+bl.buff <- buffr (bl.lcm, distance = constants$buffer.for.patchid, units = "geographic", target_value = 1) # buffer neighbouring patches
 bl.patch.id <- bl.buff %>%  clump() %>% mask(.,bl.lcm)# patch ids to buffered clumps, then remove buffered area so patch ID = clump ID
 
 ### subpatches polygonise and split by grid cell ----
@@ -159,20 +160,19 @@ save(lcm.landscape,
      bl.patch.hexid.centroids.sp,
      bl.patch.id.poly.hexid,
      file = 
-       paste0(gis.wd, 
-              "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", 
-              ts.names[this.ts.num], "\\", this.year, "\\r_funcconnect_patchwork.RData")
+       paste0(func.conect.path, "\\analysis outputs\\", 
+              this.tss[this.ts.num], "\\", this.year, "\\r_funcconnect_patchwork.RData")
 )
 
-if(grepl("Illustrative", ts.names[this.ts.num]) ){
+if(grepl("Illustrative", this.tss[this.ts.num]) ){
   save(awi.bl.patch.hexid,
        patch.edge,
        awi.edge,
        awi.landscape,
        edge,
-       file = paste0(gis.wd, 
-                "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", 
-                ts.names[this.ts.num], "\\", this.year, "\\edge_awi.polys.RData")
+       file = 
+         paste0(func.conect.path, "\\analysis outputs\\", 
+                this.tss[this.ts.num], "\\", this.year, "\\edge_awi.polys.RData")
   )
   
   }
