@@ -11,10 +11,10 @@ bl.patch.hexid.centroids$core.awi.subpatch.hex.ha =   bl.patch.hexid.centroids$a
 bl.patch.hexid.centroids$core.nonawi.subpatch.hex.ha = bl.patch.hexid.centroids$core.subpatch.hex.ha - bl.patch.hexid.centroids$core.awi.subpatch.hex.ha
 
 bl.patch.hexid.centroids$effective.ha = 
-  bl.patch.hexid.centroids$core.nonawi.subpatch.hex.ha * non.awi.qual.eff + # core non awi value
-  bl.patch.hexid.centroids$core.awi.subpatch.hex.ha * awi.qual.eff + # core awi value
-  bl.patch.hexid.centroids$edge.nonawi.subpatch.hex.ha * non.awi.qual.eff * relative.edge.quality + # edge non-awi value
-  bl.patch.hexid.centroids$edge.awi.subpatch.hex.ha * awi.qual.eff * relative.edge.quality # edge awi value
+  bl.patch.hexid.centroids$core.nonawi.subpatch.hex.ha * constants$non.awi.qual.eff + # core non awi value
+  bl.patch.hexid.centroids$core.awi.subpatch.hex.ha * constants$awi.qual.eff + # core awi value
+  bl.patch.hexid.centroids$edge.nonawi.subpatch.hex.ha * constants$non.awi.qual.eff * constants$relative.edge.quality + # edge non-awi value
+  bl.patch.hexid.centroids$edge.awi.subpatch.hex.ha * constants$awi.qual.eff * constants$relative.edge.quality # edge awi value
   
 
 # patch contributions to ECA ----
@@ -29,13 +29,13 @@ euclid.contrib.from.patch.hexid = matrix(NA, nrow = n.patch, ncol = n.patch )
 
 print("ECA Calculations")
 for ( i in 1:n.patch){
-  least.cost.contrib.from.patch.hexid[i,] =         bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-alpha * effective.distance[,i])
-  scaled.least.cost.contrib.from.patch.hexid[i,] =  bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-alpha * effective.distance[,i]* (1/landscape.mean.scaled.ecolog.cost.not.sea)) # scaled so that average cell has cost of 1
-  euclid.contrib.from.patch.hexid[i,] = bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-alpha * patch.euc.dists[,i])
+  least.cost.contrib.from.patch.hexid[i,] =         bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha * effective.distance[,i])
+  scaled.least.cost.contrib.from.patch.hexid[i,] =  bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha * effective.distance[,i]* (1/landscape.mean.scaled.ecolog.cost.not.sea)) # scaled so that average cell has cost of 1
+  euclid.contrib.from.patch.hexid[i,] = bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha * patch.euc.dists[,i])
   
-  # sensitive.least.cost.contrib.from.patch.hexid[i,] = bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-alpha.sensitive * effective.distance[,i])
-  # sensitive.scaled.least.cost.contrib.from.patch.hexid[i,] = bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-alpha.sensitive * effective.distance[,i]* (1/landscape.mean.scaled.ecolog.cost.not.sea))# scaled so that average cell has cost of 1
-  # sensitive.euclid.contrib.from.patch.hexid[i,] = bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-alpha.sensitive * patch.euc.dists[,i])
+  # sensitive.least.cost.contrib.from.patch.hexid[i,] = bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha.sensitive * effective.distance[,i])
+  # sensitive.scaled.least.cost.contrib.from.patch.hexid[i,] = bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha.sensitive * effective.distance[,i]* (1/landscape.mean.scaled.ecolog.cost.not.sea))# scaled so that average cell has cost of 1
+  # sensitive.euclid.contrib.from.patch.hexid[i,] = bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha.sensitive * patch.euc.dists[,i])
   
   svMisc::progress(i)
   
@@ -52,7 +52,7 @@ bl.patch.hexid.centroids$euclid.contrib.to = rowSums(euclid.contrib.from.patch.h
 # LANDSCAPE SCALE METRICS ----
 # square root of sum of all summed contributions of patches in the defined landscape
 
-landscape.metrics = data.frame(name = ts.lcm.names[this.ts.num],
+landscape.metrics = data.frame(name = this.tss[this.ts.num],
                                year = this.year,
                                leastcost.ECA =         sqrt(sum(bl.patch.hexid.centroids$leastcost.contrib.to[bl.patch.hexid.centroids$in.landscape == T])),
                                scaled.leastcost.ECA =  sqrt(sum(bl.patch.hexid.centroids$scaled.leastcost.contrib.to[bl.patch.hexid.centroids$in.landscape == T])),
@@ -173,8 +173,8 @@ save(ts.hexgrid,
     # sensitive.landscape.leastcost.ECA, sensitive.landscape.scaled.leastcost.ECA, sensitive.landscape.euclid.ECA,
      bl.patch.hexid.centroids,
      file = 
-       paste0(gis.wd, 
-              "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.lcm.names[this.ts.num], "\\", this.year, "\\r_funcconnect_EffectiveAreas_ECAobs_.RData")
+      paste0(func.conect.path, 
+             "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\r_funcconnect_EffectiveAreas_ECAobs_.RData")
 )
 
 print("Equivelent Connected Area calculations (script06) done")
