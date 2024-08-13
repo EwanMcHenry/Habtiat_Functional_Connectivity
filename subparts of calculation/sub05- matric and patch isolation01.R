@@ -23,16 +23,16 @@ values(hab.cost.lcm) = dispers.costs$scaled.ecolog.cost[values(lcm.landscape)]
 #replace gaps with high-cost landscape - these are normally sea, but can be beyond edge of landscape, this shouldnt be a problem, becasue landscape is buffered
 values(hab.cost.lcm)[is.na(values(hab.cost.lcm))] = max(values(hab.cost.lcm),na.rm=T)
 # aggragate cost raster by mean to reduce resolution and computational power ----
-hab.cost.lcm.100mres.mean = aggregate(hab.cost.lcm, cost.res, mean, na.rm = T) # 4 x 4 mean aggregation
+hab.cost.lcm.100mres.mean = aggregate(hab.cost.lcm, constants$cost.res, mean, na.rm = T) # 4 x 4 mean aggregation
 
 # mean cost traveling through "not sea" in landscape
-landscape.mean.scaled.ecolog.cost.not.sea = mean(values(hab.cost.lcm)[!(values(lcm.landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.landscape))])*cost.scale.factor
-landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(lcm.landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.landscape))])*cost.scale.factor
+landscape.mean.scaled.ecolog.cost.not.sea = mean(values(hab.cost.lcm)[!(values(lcm.landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.landscape))])*constants$cost.res
+landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(lcm.landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.landscape))])*constants$cost.res
 # mean costs of hexes "not sea" in land scape
 not.sea.cost = hab.cost.lcm
 values(not.sea.cost)[(values(lcm.landscape) %in% c(13, 15:19 )) | is.na(values(lcm.landscape))] = NA
-ts.hexgrid$mean.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "mean" )*cost.scale.factor
-ts.hexgrid$median.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "median" )*cost.scale.factor
+ts.hexgrid$mean.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "mean" )*constants$cost.res
+ts.hexgrid$median.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "median" )*constants$cost.res
 
 # euclidian distances between all patches ----
 patch.euc.dists <- as.matrix(dist(st_coordinates(bl.patch.hexid.centroids), diag = T))
@@ -59,18 +59,18 @@ for (hthhex in 1:length(unique(bl.patch.hexid.centroids$grid_id[bl.patch.hexid.c
   if(this.country == "N.Ireland"){ # transform crs
     this.grid_buffered <- ts.hexgrid[ts.hexgrid$grid_id == this.grid_id,] %>%
       st_simplify( preserveTopology = T, dTolerance = 100) %>% # first simplify hack to reduce run time. this is a rough buffer to negate edge effects, so can be v rough
-      st_buffer( dist = max.dispersal.considered, joinStyle = "MITRE" ) %>% 
+      st_buffer( dist = constants$max.dispersal.considered, joinStyle = "MITRE" ) %>% 
       st_union() %>% # in case different island within hex create multiple polygons
       st_as_sf() %>% 
-      st_simplify( preserveTopology = FALSE, dTolerance = max.dispersal.considered/50) %>% # v rough, but contribution to connectivity max dispers km away is sooo tiny
+      st_simplify( preserveTopology = FALSE, dTolerance = constants$max.dispersal.considered/50) %>% # v rough, but contribution to connectivity max dispers km away is sooo tiny
       st_transform(29903)    
   } else{
     this.grid_buffered <- ts.hexgrid[ts.hexgrid$grid_id == this.grid_id,] %>%
       st_simplify( preserveTopology = T, dTolerance = 100) %>% # first simplify hack to reduce run time. this is a rough buffer to negate edge effects, so can be v rough
-      st_buffer( dist = max.dispersal.considered, joinStyle = "MITRE" ) %>% 
+      st_buffer( dist = constants$max.dispersal.considered, joinStyle = "MITRE" ) %>% 
       st_union() %>% # in case different island within hex create multiple polygons
       st_as_sf() %>% 
-      st_simplify( preserveTopology = FALSE, dTolerance = max.dispersal.considered/50) # v rough, but contribution to connectivity max dispers km away is sooo tiny
+      st_simplify( preserveTopology = FALSE, dTolerance = constants$max.dispersal.considered/50) # v rough, but contribution to connectivity max dispers km away is sooo tiny
   }
     # id patch centroids within buffered and focal hex as sp objects -- needed for fast  costdistance()
     grid.focal_centroids.sp = as( grid.focal_centroids %>% st_transform( 27700) , Class = "Spatial")
@@ -97,9 +97,9 @@ for (hthhex in 1:length(unique(bl.patch.hexid.centroids$grid_id[bl.patch.hexid.c
 
 time.now - Sys.time()
 # rescale cost distance to actual effective distance (before costs scaled to be close to 1 for computational efficiency)
-effective.distance = big.cost.dist*cost.scale.factor
+effective.distance = big.cost.dist*constants$cost.res
 # and make all that are beyond maximum considered distance NA. the efficiecny hack emplyed here (doing cost.distance by hexes buffered by max considered distance) will have calculated for some it didnt need to.
-effective.distance [patch.euc.dists>max.dispersal.considered] = NA
+effective.distance [patch.euc.dists>constants$max.dispersal.considered] = NA
 print("cost distance done")
 
 
@@ -113,15 +113,16 @@ save(effective.distance,
      patch.euc.dists,
      bl.patch.hexid.centroids, 
      file = 
-       paste0(gis.wd, 
-              "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.lcm.names[this.ts.num], "\\", this.year, "\\r_funcconnect_MatrixCostDists.RData")
+     paste0(func.conect.path, 
+            "\\analysis outputs\\", this.ts.for.loop[this.ts.num], "\\", this.year, "\\r_funcconnect_MatrixCostDists.RData")
 )
 
-if(grep("Illustrative", ts.lcm.names[this.ts.num]) ){
+if(grepl("Illustrative", this.ts.for.loop[this.ts.num]) ){
   save(gridbuff_Tcost.C,
-       file = paste0(gis.wd, 
-                     "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", 
-                     ts.lcm.names[this.ts.num], "\\", this.year, "\\cost.objects.RData")
+       file = 
+         paste0(func.conect.path, 
+                "\\analysis outputs\\", 
+                     this.ts.for.loop[this.ts.num], "\\", this.year, "\\cost.objects.RData")
   )
   
 }
