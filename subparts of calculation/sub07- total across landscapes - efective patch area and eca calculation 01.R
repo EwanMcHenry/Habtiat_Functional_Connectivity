@@ -5,33 +5,31 @@
 # assums no overlap in landscapes and no contribution of one landscape to antoher
 
 # make directory to save objects in
-dir.create(paste0(gis.wd, 
-                  "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.andAll.lcm.names[length(ts.andAll.lcm.names)])
+dir.create(paste0(func.conect.path, 
+                  "\\analysis outputs\\", this.tss)
 )
 
-
-
 # LOAD AND COMBINE PATCH INFO FROM ALL individual LANDSCAPES ----
-load(paste0(gis.wd, 
-            "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", this.tss[1], "\\", this.years[1], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
+load(paste0(func.conect.path, 
+            "\\analysis outputs\\", this.tss[1], "\\", years.considered[1], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
 # load data needed for landscapes in loop
 individ.ts.outputs = list (NA)
 for(i in seq_along(this.tss)){
-  for(y in seq_along(this.years)){
-    load(paste0(gis.wd, 
-                "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", this.tss[i], "\\", this.years[y], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
+  for(y in seq_along(years.considered)){
+    load(paste0(func.conect.path, 
+                "\\analysis outputs\\", this.tss[i], "\\", years.considered[y], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
     # give an identifier for the landscape stuff came from
     ts.hexgrid$ts.name = this.tss[i]
     bl.patch.hexid.centroids$ts.name = this.tss[i]
     # hexgrid with stuff 
-    individ.ts.outputs[[(i-1)*length(this.years)+y]] = list(name = this.tss[i], 
-                                                            year = this.years[y],
+    individ.ts.outputs[[(i-1)*length(years.considered)+y]] = list(name = this.tss[i], 
+                                                            year = years.considered[y],
                                                             ts.hexgrid = ts.hexgrid, 
                                                             bl.patch.hexid.centroids = bl.patch.hexid.centroids)
   }}
 
 # SET UP FOR LOOP FOR YEARS
-for (this.year in this.years) {
+for (this.year in years.considered) {
   # pull together patch info from  all landscapes from that year
   bl.patch.hexid.centroids = do.call(rbind,
                                      map(individ.ts.outputs, "bl.patch.hexid.centroids")[map(individ.ts.outputs, "year") %>% unlist() == this.year])
@@ -64,8 +62,8 @@ for (this.year in this.years) {
   # } ----
   
   # make directory to save full landscape objects in
-  dir.create(paste0(gis.wd, 
-                    "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.andAll.lcm.names[length(ts.andAll.lcm.names)], "\\", this.year)
+  dir.create(paste0(func.conect.path, 
+                    "\\analysis outputs\\All treescapes\\", this.year)
   )
   
   # LANDSCAPE SCALE METRICS ----
@@ -192,8 +190,8 @@ for (this.year in this.years) {
        # sensitive.landscape.leastcost.ECA, sensitive.landscape.scaled.leastcost.ECA, sensitive.landscape.euclid.ECA,
        bl.patch.hexid.centroids,
        file = 
-         paste0(gis.wd, 
-                "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.andAll.lcm.names[length(ts.andAll.lcm.names)], "\\", this.year, "\\r_funcconnect_EffectiveAreas_ECAobs_.RData")
+         paste0(func.conect.path, 
+                "\\analysis outputs\\All treescapes\\", this.year, "\\r_funcconnect_EffectiveAreas_ECAobs_.RData")
   )
 }
 print("Total Lanscapes Equivelent Connected Area calculations (script07) done")
