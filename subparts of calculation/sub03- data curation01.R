@@ -12,29 +12,19 @@ dir.create(paste0(func.conect.path,
                   "\\analysis outputs\\", this.tss[this.ts.num],"\\", this.year))
 
 ## costs and edge effects of habitat types ----
-# scale cost by fraction of maximum cost - cost clacs work best when costs close to 1, only use multiples becasue easy to scale final distances
-cost.scale.factor = max(dispers.costs$ecolog.cost)/5
-dispers.costs$scaled.ecolog.cost <-  dispers.costs$ecolog.cost/cost.scale.factor
-# make hab type a factor
-dispers.costs = dispers.costs %>% 
-  mutate(hab.num = factor(hab.num))
-# set dispersal cost through focal habitat
-dispers.costs$scaled.ecolog.cost[dispers.costs$hab.num==1] = focalhab.cost
-
-
 
 ## CUT DATA TO LANDSCAPE AND SAVE ----
 ### select buffered landscape to avoid edge effects  ----
 this.ts = Focal_landscape[this.ts.num,]
-ts.buff = this.ts %>% st_simplify( preserveTopology = T, dTolerance = landscape.buffer.simplification.tolerance[1]) %>% # first simplify hack to reduce run time. this is a rough buffer to negate edge effects, so can be v rough
-  st_buffer( dist = buffer.roundLandscape) %>% 
-  st_simplify( preserveTopology = FALSE, dTolerance = landscape.buffer.simplification.tolerance[2])
+ts.buff = this.ts %>% st_simplify( preserveTopology = T, dTolerance = constants$landscape.buffer.simplification.tolerance[1]) %>% # first simplify hack to reduce run time. this is a rough buffer to negate edge effects, so can be v rough
+  st_buffer( dist = constants$buffer.roundLandscape) %>% 
+  st_simplify( preserveTopology = FALSE, dTolerance = constants$landscape.buffer.simplification.tolerance[2])
 ### name country
 this.country = st_intersection( st_point_on_surface(this.ts) , countries)$name.1 
 
 ### select hex grid ----
 # define Uk wide hexgrid
-hex.grid0 = st_make_grid(countries, c(hexdist.h, hexdist.v), what = "polygons", square = F)
+hex.grid0 = st_make_grid(countries, c(constants$hexdist.h, constants$hexdist.v), what = "polygons", square = F)
 hex.grid = st_sf(hex.grid0) %>%
   # add grid ID
   mutate(grid_id = 1:length(lengths(hex.grid0)))
@@ -67,9 +57,7 @@ if(this.country == "N.Ireland"){
   } else{
   lcm19.rast25 = lcm19.rast25.gb
   lcm90.rast25 = lcm90.rast25.gb
-  # lcm19.rast25.unpro = lcm19.rast25.gb
-  # lcm90.rast25.unpro = lcm90.rast25.gb
-  
+
   ## cut LCM to landscape
   tscrop.lcm19.rast25 <- crop(lcm19.rast25, extent(ts.buff))
   tsbuff.lcm19.rast25 <- fast_mask(tscrop.lcm19.rast25, ts.buff)
@@ -78,6 +66,14 @@ if(this.country == "N.Ireland"){
   tsbuff.lcm90.rast25 <- fast_mask(tscrop.lcm90.rast25, ts.buff)
   
 }
+
+if(this.year == 2019){
+  lcm.landscape = tsbuff.lcm19.rast25 #eg.lcm19.rast25
+}
+if(this.year == 1990){
+  lcm.landscape = tsbuff.lcm90.rast25 #eg.lcm19.rast25
+}
+
 
 
 # tscrop.lcm19.rast25.unpro <- crop(lcm19.rast25.unpro, extent(ts.buff))
@@ -108,10 +104,16 @@ if(this.country == "Scotland"){
   buffr (., distance = 25, units = "geographic", target_value = 1)
 } else{ tsbuff.nwss.raster = NA}
 
+awi.landscape = tsbuff.awi#eg.awi
+nwss.landscape = tsbuff.nwss.raster
+
+
 
 ### save ----
-save(tsbuff.lcm19.rast25,
-     tsbuff.lcm90.rast25,
+save(awi.landscape, 
+     nwss.landscape,
+  #tsbuff.lcm19.rast25,
+     #tsbuff.lcm90.rast25,
      # tsbuff.lcm19.rast25.unpro, 
      # tsbuff.lcm90.rast25.unpro, 
      tsbuff.awi, 
@@ -122,16 +124,17 @@ save(tsbuff.lcm19.rast25,
      tsbuff.hexgrid,
      ts.hexgrid,
      this.ts,
-     cost.scale.factor,
-     dispers.costs, this.country, 
-     file = paste0(gis.wd, 
-           "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", ts.names[this.ts.num], "\\", this.year, "\\r_curated data_.RData")
+     this.country, 
+     file = paste0(func.conect.path, 
+                   "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\r_curated data_.RData")
     )
 
 # save some space in RAM by removing some objects ----
-rm(awi, lcm19.rast25.ni,hex.grid0, hex.grid, tsbuff.nwss, 
+rm(awi, lcm19.rast25.ni,hex.grid0, hex.grid, 
+   tsbuff.nwss, 
    tsbuff.nwss.raster,
    tsbuff.awi.raster, lcm19.rast25, lcm90.rast25, tsbuff.rast, 
+   tsbuff.lcm19.rast25, tsbuff.lcm90.rast25,
    tscrop.lcm19.rast25, tscrop.lcm90.rast25, 
    lcm19.rast25.gb,
    lcm90.rast25.ni,
