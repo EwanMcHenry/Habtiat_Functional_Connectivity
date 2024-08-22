@@ -7,30 +7,28 @@
 
 # Ncells of landtypes in each hex
 
-ts.hexgrid$lcm.ncells = exact_extract(lcm.landscape, ts.hexgrid, "count" )
-bl.cells = lcm.landscape
-values(bl.cells)[values(lcm.landscape) != 1] = 0
-ts.hexgrid$bl.ncells = exact_extract(bl.cells, ts.hexgrid, "sum" )
-landnotcoastal.cells = lcm.landscape
+ts.hexgrid$lcm.ncells = exact_extract(lcm.year_landscape, ts.hexgrid, "count" )
+ts.hexgrid$bl.ncells = exact_extract(bl.lcm, ts.hexgrid, "count" )
+landnotcoastal.cells = lcm.year_landscape
 values(landnotcoastal.cells) = 0
-values(landnotcoastal.cells)[values(lcm.landscape) %in% c(1:12,14,20:21 )] = 1
+values(landnotcoastal.cells)[values(lcm.year_landscape) %in% c(1:12,14,20:21 )] = 1
 ts.hexgrid$landnotcoastal.ncells = exact_extract(landnotcoastal.cells, ts.hexgrid, "sum" )
-rm(bl.cells, landnotcoastal.cells)
+rm(landnotcoastal.cells)
 
 # make cost layer 
-hab.cost.lcm = lcm.landscape  
-values(hab.cost.lcm) = dispers.costs$scaled.ecolog.cost[values(lcm.landscape)]
+hab.cost.lcm = lcm.year_landscape  
+values(hab.cost.lcm) = dispers.costs$scaled.ecolog.cost[values(lcm.year_landscape)]
 #replace gaps with high-cost landscape - these are normally sea, but can be beyond edge of landscape, this shouldnt be a problem, becasue landscape is buffered
 values(hab.cost.lcm)[is.na(values(hab.cost.lcm))] = max(values(hab.cost.lcm),na.rm=T)
 # aggragate cost raster by mean to reduce resolution and computational power ----
 hab.cost.lcm.100mres.mean = aggregate(hab.cost.lcm, constants$cost.res, mean, na.rm = T) # 4 x 4 mean aggregation
 
 # mean cost traveling through "not sea" in landscape
-landscape.mean.scaled.ecolog.cost.not.sea = mean(values(hab.cost.lcm)[!(values(lcm.landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.landscape))])*constants$cost.res
-landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(lcm.landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.landscape))])*constants$cost.res
+landscape.mean.scaled.ecolog.cost.not.sea = mean(values(hab.cost.lcm)[!(values(lcm.year_landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.year_landscape))])*constants$cost.res
+landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(lcm.year_landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.year_landscape))])*constants$cost.res
 # mean costs of hexes "not sea" in land scape
 not.sea.cost = hab.cost.lcm
-values(not.sea.cost)[(values(lcm.landscape) %in% c(13, 15:19 )) | is.na(values(lcm.landscape))] = NA
+values(not.sea.cost)[(values(lcm.year_landscape) %in% c(13, 15:19 )) | is.na(values(lcm.year_landscape))] = NA
 ts.hexgrid$mean.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "mean" )*constants$cost.res
 ts.hexgrid$median.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "median" )*constants$cost.res
 
