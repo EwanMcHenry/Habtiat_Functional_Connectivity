@@ -100,11 +100,6 @@ source(paste0(sub.code.path, "\\sub06- efective patch area and eca calculation01
 # end landscape-years loop
 print(paste(this.ts.for.loop, this.year, "done"))
   } # end year loop
-  
-  # read subscript 07 - total combined landscapes effective area and eca calculation ----
-  # based heavily on sub06, just loading and runign for combined
-  source(paste0(sub.code.path, "\\sub07- total across landscapes - efective patch area and eca calculation 01.R"))
-  
   } # end landscape loop
 # time taken ----
 
@@ -116,48 +111,3 @@ timetaken = timedone - timestart
 ###############################################################################
 
 
-###############################################################################
-###############################################################################
-#  COMBINING RESULTS INTO ONE TABLE ETC...
-###############################################################################
-###############################################################################
-
-
-###############################################################################
-###############################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-# ## Load eca and effective area data ----
-load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\r_funcconnect_EffectiveAreas_ECAobs_.RData")
-)
-# # subscript 07 - change in eca, landscape stats and spatial hex plots ----
-# source(paste0(sub.code.path, "\\sub07- stats, change and map plots01.R"))
-# ## load and store all landscape and hexgrid eca info: 
-# ### landscape.metrics.all 
-# ### all.hexgrids
-# ## create change in landscape and hexgrid objects 
-# ### landscape.metrics.all.change
-# ### change.hexgrids 
-# ## ggplots and plotly individual maps -
-# ### save pdfs and pngs of individual plots
-# ### hexgird eca eca.hexmap
-# ### eca.hexmap.plotly
-# ## comparison ggplots and save 
-# ### comparison.eca.hexmap
-# ## change in ECA ggplot and plotly
-# ### change.eca.hexmap
-# ### change.eca.hexmap.plotly
-# 
-# # load plots and stats  ----
-# load(paste0(func.conect.path, 
-#             "\\analysis outputs\\", "\\r_plots_stats_change.RData"))
