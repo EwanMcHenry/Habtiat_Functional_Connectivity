@@ -5,21 +5,15 @@
 
 # curation ----
 
-## make folder for this TS's objects ----
-dir.create(paste0(func.conect.path, 
-                  "\\analysis outputs\\", this.tss[this.ts.num]))
-dir.create(paste0(func.conect.path, 
-                  "\\analysis outputs\\", this.tss[this.ts.num],"\\", this.year))
-
-## costs and edge effects of habitat types ----
 
 ## CUT DATA TO LANDSCAPE AND SAVE ----
 ### select buffered landscape to avoid edge effects  ----
 this.ts = Focal_landscape[this.ts.num,]
-ts.buff = this.ts %>% st_simplify( preserveTopology = T, dTolerance = constants$landscape.buffer.simplification.tolerance[1]) %>% # first simplify hack to reduce run time. this is a rough buffer to negate edge effects, so can be v rough
-  st_buffer( dist = constants$buffer.roundLandscape) %>% 
-  st_simplify( preserveTopology = FALSE, dTolerance = constants$landscape.buffer.simplification.tolerance[2])
-### name country
+ts.buff = this.ts %>% 
+  st_simplify( preserveTopology = T, dTolerance = constants$landscape.buffer.simplification.tolerance[1]) %>% # first simplify hack to reduce run time. this is a rough buffer to negate edge effects, so can be v rough
+  st_buffer( dist = constants$buffer.roundLandscape) %>% # buffer
+  st_simplify( preserveTopology = FALSE, dTolerance = constants$landscape.buffer.simplification.tolerance[2]) # simplify again
+### name of country ----
 this.country = st_intersection( st_point_on_surface(this.ts) , countries)$name.1 
 
 ### select hex grid ----
@@ -44,6 +38,7 @@ ts.hexgrid$hex.ha = st_area(ts.hexgrid) %>%
 ### select lcm and transform crs of other data if needed----
 # different lcm for NI/GB
 if(this.country == "N.Ireland"){
+  
   lcm19.rast25 = lcm19.rast25.ni #%>% projectRaster(., crs = crs(lcm19.rast25.gb), method = "ngb")
   lcm90.rast25 = lcm90.rast25.ni #%>% projectRaster(., crs = crs(lcm90.rast25.gb), method = "ngb")
 
@@ -67,14 +62,10 @@ if(this.country == "N.Ireland"){
   
 }
 
-if(this.year == 2019){
-  lcm.landscape = tsbuff.lcm19.rast25 #eg.lcm19.rast25
-}
-if(this.year == 1990){
-  lcm.landscape = tsbuff.lcm90.rast25 #eg.lcm19.rast25
-}
+lcm.landscape <- list()
 
-
+lcm.landscape[[1]] <- list(year = years.considered[1], raster = tsbuff.lcm19.rast25)
+lcm.landscape[[2]] <- list(year = years.considered[2], raster = tsbuff.lcm90.rast25)
 
 # tscrop.lcm19.rast25.unpro <- crop(lcm19.rast25.unpro, extent(ts.buff))
 # tsbuff.lcm19.rast25.unpro <- fast_mask(tscrop.lcm19.rast25.unpro, ts.buff)
@@ -124,13 +115,14 @@ save(awi.landscape,
      tsbuff.hexgrid,
      ts.hexgrid,
      this.ts,
-     this.country, 
+     this.country,
+    lcm.landscape,
      file = paste0(func.conect.path, 
-                   "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\r_curated data_.RData")
+                   "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData")
     )
 
 # save some space in RAM by removing some objects ----
-rm(awi, lcm19.rast25.ni,hex.grid0, hex.grid, 
+rm(awi, lcm19.rast25.ni,hex.grid0, hex.grid, nwss, 
    tsbuff.nwss, 
    tsbuff.nwss.raster,
    tsbuff.awi.raster, lcm19.rast25, lcm90.rast25, tsbuff.rast, 
