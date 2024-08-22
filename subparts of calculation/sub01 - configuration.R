@@ -12,12 +12,12 @@
 # maindrive = "D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust"
 # #maindrive = "C:\\Users\\emc2\\OneDrive - The Woodland Trust"
 # ts.wd = paste0(maindrive , "\\Treescapes analysis")
-func.conect.path = paste0(gis.wd, "Connectivity\\Habtiat_Functional_Connectivity") # the project directory for code, outputs etc 
+func.conect.path = paste0(gis.wd, "\\Connectivity\\Habtiat_Functional_Connectivity") # the project directory for code, outputs etc 
 
 ## DEFINE LANDSCAPE(S) ----
 # landscape must be a single polygon... obviously, st_union is to make sure.
 #Focal_landscape = st_read(paste0(gis.wd, "Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
-Focal_landscape = st_read(paste0(gis.wd, "Data\\Landscapes\\Usk Catchments\\Usk Catchments.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
+Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\Usk Catchments\\Usk Catchments.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
 Focal_landscape$name = "Usk Catchments"
 
 ## Define year ----

@@ -22,6 +22,8 @@ nice.names = this.tss
 stand.plot.height = 7 # plot height ratio
 stand.plot.width = 6 # plot width ratio
 hex.line.size = 0.05 # line size for hexgrid
+sig_figs_for_legend = 2 # number of significant figures for legend
+n_breaks_in_legend = 4 # number of breaks in legend
 
 # LOAD and store all landscape and hexgrid eca info: landscape.metrics.all all.hexgrids ----
 #  make objects to store in
@@ -29,10 +31,11 @@ load(paste0(func.conect.path, "\\analysis outputs\\",
             this.tss[1], "\\", years.considered[1], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
 landscape.metrics.all = landscape.metrics[0,]
 # load data needed for landscapes in loop
+
 hex.colnames = names(ts.hexgrid)
 all.hexgrids = list (NA)
-for(i in seq_along(this.tss)[1]){
-  for(y in seq_along(years.considered)[1]){
+for(i in seq_along(this.tss)){
+  for(y in seq_along(years.considered)){
     load(paste0(func.conect.path, "\\analysis outputs\\", 
                 this.tss[i], "\\", years.considered[y], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
     
@@ -91,7 +94,7 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
     col.lim.var.name = "hex.leastcost.eca" # this solves issue where small portion-hexes with high cover where skewing colour scale. If they are high they get high colour, but dont mess with the scale
     
     main.title = paste("Bigger, better, more joined up: functional connectivity of native woodland")
-    sub.title = paste0(nice.names[this.tss == all.hexgrids[[i]]$name], " ", all.hexgrids[[i]]$year, ". Landscape ECA(PC) = ",landscape.metrics.all$leastcost.ECA[i]  %>%  round( digits = 0) %>% format( big.mark = ","), " ha"  )
+    sub.title = paste0(this.tss[this.tss == all.hexgrids[[i]]$name], " ", all.hexgrids[[i]]$year, ". Landscape ECA(PC) = ",landscape.metrics.all$leastcost.ECA[i]  %>%  round( digits = 0) %>% format( big.mark = ","), " ha"  )
     fill.scale.title = "ECA(PC) (ha)"
     
     grid = all.hexgrids[[i]]$hexgrid %>% st_simplify(dTolerance = 100)
@@ -119,12 +122,12 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
                             ), HTML)
       ), colour = "black", size = hex.line.size) +
       scale_fill_viridis_c(name = fill.scale.title,
-                           limits = range(colour.brks(colour.limits )), 
+                           limits = range(colour.brks(lims = colour.limits, n = n_breaks_in_legend, sig_figs = sig_figs_for_legend)), 
                            oob = scales::squish, 
-                           breaks = colour.brks(lims = colour.limits),
+                           breaks = colour.brks(lims = colour.limits, n = n_breaks_in_legend, sig_figs = sig_figs_for_legend),
                            labels = colour.lable(x = col.lim.var.same.landscape ,
                                                  lims = colour.limits , 
-                                                 dividor = dividor),
+                                                 dividor = dividor, sig_figs = sig_figs_for_legend),
                            #option = "magma",direction = -1 
                            guide = guide_colorbar(
                              direction = "horizontal", barheight = unit(2, units = "mm"),
@@ -138,6 +141,8 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
       ) 
     
 
+    # create directory for maps ----
+    dir.create(paste0(func.conect.path, "\\analysis outputs\\.maps\\all individual treescapes\\", all.hexgrids[[i]]$name), showWarnings = FALSE)
     
     # save plot ----
     
@@ -145,14 +150,14 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
     #                                "\\analysis outputs\\", all.hexgrids[[i]]$name, "\\", all.hexgrids[[i]]$year, 
     #                                "\\hex.ECA.pdf"),
     #        height = 5  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)))
-
+    
     ggsave(plot, filename = paste0(func.conect.path, 
-                                   "\\analysis outputs\\.maps\\all individual treescapes\\", 
+                                   "\\analysis outputs\\.maps\\all individual treescapes\\", all.hexgrids[[i]]$name, "\\", 
                                    all.hexgrids[[i]]$name, all.hexgrids[[i]]$year, "_hex.ECA.pdf"),
            height = stand.plot.height  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)))
     
     ggsave(plot, filename = paste0(func.conect.path, 
-                                   "\\analysis outputs\\.maps\\all individual treescapes\\", 
+                                   "\\analysis outputs\\.maps\\all individual treescapes\\", all.hexgrids[[i]]$name, "\\", 
                                    all.hexgrids[[i]]$name, all.hexgrids[[i]]$year, "_hex.ECA.png"),
            height = stand.plot.height  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)), bg = "white", dpi = 900)
     
@@ -162,13 +167,13 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
   })
 
     ## save individual hex plots together as one pdf ----
-ggsave(
-  filename = paste0(func.conect.path, 
-                    "\\analysis outputs\\.maps\\",
-  "Treescapes_", paste(years.considered, collapse = "_"),"_hex.ECA.pdf"), 
-  plot = marrangeGrob(eca.hexmap, nrow=1, ncol=1, top = NULL), 
-  width = stand.plot.width , height = stand.plot.height
-)
+# ggsave(
+#   filename = paste0(func.conect.path, 
+#                     "\\analysis outputs\\.maps\\",
+#   "Treescapes_", paste(years.considered, collapse = "_"),"_hex.ECA.pdf"), 
+#   plot = marrangeGrob(eca.hexmap, nrow=1, ncol=1, top = NULL), 
+#   width = stand.plot.width , height = stand.plot.height
+# )
 
     ## plotly for each individual map ----  
     # eca.hexmap.plotly <- lapply(seq_along(all.hexgrids), FUN = function(i) {
@@ -194,17 +199,24 @@ comparison.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
                                ncol = 2, common.legend = TRUE, legend = "bottom") %>%
     annotate_figure(top = text_grob(joint.title, face = "bold", size = 11))
   
+  # create directory for map plots
+  dir.create(paste0(func.conect.path, "\\analysis outputs\\.maps\\treescape comparison\\", all.hexgrids[[i]]$name), showWarnings = FALSE)
+
   # ggsave(comparison.plot, filename = paste0(gis.wd, 
   #                                           "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", this.tss[i], "\\comparison_", min(years.considered), "_", max(years.considered), "_hex.ECA.pdf"),
   #        height = 5  , width = 2 * stand.plot.width *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)))
   
   # hotfix 12.07.22 - to make these more accessible.. hope it works, if no revert to above
+  
+
   ggsave(comparison.plot, filename = paste0(func.conect.path, 
-                                            "\\analysis outputs\\.maps\\treescape comparison\\", min(years.considered), "_", max(years.considered), "_", this.tss[i], "_hex.ECA.pdf"),
+                                            "\\analysis outputs\\.maps\\treescape comparison\\", all.hexgrids[[i]]$name, "\\",
+                                            min(years.considered), "_", max(years.considered), "_", this.tss[i], "_hex.ECA.pdf"),
          height = stand.plot.height  , width = stand.plot.width * 2 *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)))
 
   ggsave(comparison.plot, filename = paste0(func.conect.path, 
-                                            "\\analysis outputs\\.maps\\treescape comparison\\", min(years.considered), "_", max(years.considered), "_", this.tss[i], "_hex.ECA.png"),
+                                            "\\analysis outputs\\.maps\\treescape comparison\\", all.hexgrids[[i]]$name, "\\",
+                                            min(years.considered), "_", max(years.considered), "_", this.tss[i], "_hex.ECA.png"),
          height = stand.plot.height  , width = stand.plot.width * 2 *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)), dpi = 900, bg = "white")
   
   comparison.plot
@@ -214,11 +226,7 @@ comparison.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
 
 change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
   # variables ----
-  hot.fix = 1 # logical - had full loop been run since 6/6/2022 when hotfix of bug in hex median cost put in
-  # hotfix constants$cost.scale.factor- 
-    constants$cost.scale.factor = max(dispers.costs$ecolog.cost)/5
-  # delete above when hotfix not needed
-  
+
   var.name = "hex.standardised.leastcost.eca" # small hex area scales for
   col.lim.var.name = "hex.leastcost.eca" # this solves issue where small portion-hexes with high cover where skewing colour scale. If they are high they get high colour, but dont mess with the scale
   
@@ -232,10 +240,10 @@ change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
   var = as.data.frame(grid)[,names(grid) == var.name]
   low.col = E.cols$connectiv.low
   high.col = E.cols$connectiv.high
-  bigmark.round.pos = function(x, digits = 0){
-    y = round(x,digits)
-    z = format(y, big.mark=",")
-    z[y>0] = paste0("+",z[y>0])
+  bigmark.round.pos <- function(x, digits = 0) {
+    y <- round(x, digits)
+    z <- format(y, big.mark = ",")
+    z[!is.na(y) & y > 0] <- paste0("+", z[!is.na(y) & y > 0])
     z
   }
   
@@ -264,14 +272,14 @@ change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
                                               bigmark.round.pos(tot.aw.patch.ha-tot.awedge.patch.ha), " ha ancient woodland ) <br>",
                                               "Negative edge habitat = ", bigmark.round.pos(tot.edge.patch.ha), " ha (", 
                                               bigmark.round.pos(tot.awedge.patch.ha), " ha ancient woodland ) <br>",
-                                              "Mean landscape permiability = ", bigmark.round.pos(mean.scaled.ecolog.cost.not.sea * (hot.fix*constants$cost.scale.factor), 2)
+                                              "Mean landscape permiability = ", bigmark.round.pos(mean.scaled.ecolog.cost.not.sea * constants$cost.scale.factor, 2)
                           )), HTML)
     ), colour = "black", size = hex.line.size) +
     scale_fill_gradient2(name = fill.scale.title,
                          low= low.col, high= high.col ,
-                         breaks = colour.brks(lims = colour.limits),
+                         breaks = colour.brks(lims = colour.limits, n = n_breaks_in_legend, sig_figs = sig_figs_for_legend),
                          labels = colour.lable(x = col.lim.var.same.landscape ,
-                                               lims = colour.limits , dividor = dividor),
+                                               lims = colour.limits , dividor = dividor, sig_figs = sig_figs_for_legend),
                          limits = colour.limits, 
                          oob = scales::squish,
                          guide = guide_colorbar(
