@@ -2,8 +2,6 @@
 # functional connectivity metric dev
 # script 01 - loading libraries, functions and data
 
-
-
 # libraries ----
 library(tidyverse)
 library(sf) # for gis
@@ -46,3 +44,6 @@ library(network)
 library(sna)
 library(ggnetwork)
 library(ggExtra)
+
+library(U.utilities) # Ewan custom functions git_install("EwanMcHenry/U.utilities")
+
