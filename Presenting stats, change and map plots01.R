@@ -4,8 +4,6 @@
 # determing change over time, makign maps and tables and storign improtant stats.
 # this code should opperate stand alone, so long as the master computation code has already been run
 source("subparts of calculation\\sub00- loading libraries and functions.R")
-source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans functions.R")
-source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans gis specifications.R")
 
 # Configuration ----
 ## SET MODEL CONSTANTS ----
