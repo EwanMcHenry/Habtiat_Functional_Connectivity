@@ -99,7 +99,13 @@ source(paste0(sub.code.path, "\\sub06- efective patch area and eca calculation01
 
 # end landscape-years loop
 print(paste(this.ts.for.loop, this.year, "done"))
-}}
+  } # end year loop
+  
+  # read subscript 07 - total combined landscapes effective area and eca calculation ----
+  # based heavily on sub06, just loading and runign for combined
+  source(paste0(sub.code.path, "\\sub07- total across landscapes - efective patch area and eca calculation 01.R"))
+  
+  } # end landscape loop
 # time taken ----
 
 timedone = Sys.time()
@@ -126,9 +132,6 @@ timetaken = timedone - timestart
 
 
 
-# read subscript 07 - total combined landscapes effective area and eca calculation ----
-# based heavily on sub06, just loading and runign for combined
-source(paste0(sub.code.path, "\\sub07- total across landscapes - efective patch area and eca calculation 01.R"))
 
 
 

@@ -3,18 +3,13 @@
 # calculation of ECA for entirity of all landscapes considered, then combine hexgrids for each ts considered
 # based heavily on subscript 06
 # assums no overlap in landscapes and no contribution of one landscape to antoher
+# adds a connectivity metric for all landscapes considered I think. I dont really like this and am removing it from the master as of ##------ Thu Aug 22 16:09:20 2024 ------##
+# consider it unnesseary
 
-# make directory to save objects in
-dir.create(paste0(func.conect.path, 
-                  "\\analysis outputs\\", this.tss)
-)
 
 # LOAD AND COMBINE PATCH INFO FROM ALL individual LANDSCAPES ----
-load(paste0(func.conect.path, 
-            "\\analysis outputs\\", this.tss[1], "\\", years.considered[1], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
 # load data needed for landscapes in loop
 individ.ts.outputs = list (NA)
-for(i in seq_along(this.tss)){
   for(y in seq_along(years.considered)){
     load(paste0(func.conect.path, 
                 "\\analysis outputs\\", this.tss[i], "\\", years.considered[y], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
@@ -26,7 +21,7 @@ for(i in seq_along(this.tss)){
                                                             year = years.considered[y],
                                                             ts.hexgrid = ts.hexgrid, 
                                                             bl.patch.hexid.centroids = bl.patch.hexid.centroids)
-  }}
+  }
 
 # SET UP FOR LOOP FOR YEARS
 for (this.year in years.considered) {
@@ -61,11 +56,7 @@ for (this.year in years.considered) {
   #   
   # } ----
   
-  # make directory to save full landscape objects in
-  dir.create(paste0(func.conect.path, 
-                    "\\analysis outputs\\All treescapes\\", this.year)
-  )
-  
+
   # LANDSCAPE SCALE METRICS ----
   # square root of sum of all summed contributions of patches in the defined landscape
   
