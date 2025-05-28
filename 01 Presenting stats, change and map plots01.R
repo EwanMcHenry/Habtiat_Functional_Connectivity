@@ -3,34 +3,38 @@
 # functional connectivity metric dev
 # determing change over time, makign maps and tables and storign improtant stats.
 # this code should opperate stand alone, so long as the master computation code has already been run
+# libraries and ----
 source("subparts of calculation\\sub00- loading libraries and functions.R")
-
-# Configuration ----
-## SET MODEL CONSTANTS ----
 source("subparts of calculation\\sub01 - configuration.R") # configureation file
-
-# libraries ----
 library(ggmap)
 library("rnaturalearth")
 library("rnaturalearthdata")
 library("rnaturalearthhires") # install.packages("rnaturalearthhires", repos = "http://packages.ropensci.org", type = "source")
-
 world <- ne_countries(scale = "large", returnclass = "sf")
+
+# configuration ----
 
 nice.names = this.tss
 
 stand.plot.height = 7 # plot height ratio
 stand.plot.width = 6 # plot width ratio
 hex.line.size = 0.05 # line size for hexgrid
-sig_figs_for_legend = 2 # number of significant figures for legend
+round_to_for_legend_state = 25 # number of significant figures for legend
+round_to_for_legend_change = 10
+# number of significant figures for legend
+
 n_breaks_in_legend = 4 # number of breaks in legend
+n_breaks_in_legend_change = 5
+
+# Configuration ----
+## SET MODEL CONSTANTS ----
 
 # LOAD and store all landscape and hexgrid eca info: landscape.metrics.all all.hexgrids ----
 #  make objects to store in
 load(paste0(func.conect.path, "\\analysis outputs\\", 
             this.tss[1], "\\", years.considered[1], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
 landscape.metrics.all = landscape.metrics[0,]
-# load data needed for landscapes in loop
+# load up data needed for landscapes in loop
 
 hex.colnames = names(ts.hexgrid)
 all.hexgrids = list (NA)
@@ -86,6 +90,23 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
   temp.grid
 })
 
+#  SAVE SHAPEFILES ----
+# each year
+for(i in seq_along(this.tss)){
+  for(y in seq_along(years.considered)){
+    write_sf(all.hexgrids[[(i-1)*length(years.considered)+y]]$hexgrid, 
+             paste0(func.conect.path, "\\analysis outputs\\", 
+                    this.tss[i], "\\", this.tss[i], "_", years.considered[y], "_hexgrid.gpkg"))
+  }
+}
+# change
+for(i in seq_along(this.tss)){
+  write_sf(change.hexgrids[[i]]$hexgrid, 
+           paste0(func.conect.path, "\\analysis outputs\\", 
+                  this.tss[i], "\\", 
+                  this.tss[i], "_", years.considered[1],"-",years.considered[2] , "_change_hexgrid.gpkg"))
+}
+
 # INDIVIDAUL PLOTS - ggplots list - hexgird eca eca.hexmap  ---- 
 
   eca.hexmap <- lapply(seq_along(all.hexgrids), FUN = function(i) {
@@ -106,9 +127,11 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
       map(all.hexgrids, "name") == all.hexgrids[[i]]$name ]))[,col.lim.var.name] # that have same name as this one (n = n.years), extract this variable and concat into single vector
     col.lim.weights.same.landscape = as.data.frame(bind_rows(map(all.hexgrids, "hexgrid")[# all the hexgrids
       map(all.hexgrids, "name") == all.hexgrids[[i]]$name ]))[, "hex.ha"] # that have same name as this one (n = n.years), extract the hex area and concat into single vector
+    col.lim.weights.same.landscape = col.lim.weights.same.landscape[col.lim.var.same.landscape !=0]
+    col.lim.var.same.landscape = col.lim.var.same.landscape[col.lim.var.same.landscape !=0]
     
-    colour.limits = c(0,min(mean(col.lim.var.same.landscape) + 3* sd(col.lim.var.same.landscape),
-                             wtd.quantile (col.lim.var.same.landscape, q = 0.98, na.rm = FALSE, weight= col.lim.weights.same.landscape))) 
+    colour.limits = c(0,min(mean(col.lim.var.same.landscape) + 4* sd(col.lim.var.same.landscape),
+                             wtd.quantile (col.lim.var.same.landscape, q = 0.99, na.rm = FALSE, weight= col.lim.weights.same.landscape))) 
     dividor = 1
 
     plot = ggplot(data=grid) +
@@ -122,12 +145,12 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
                             ), HTML)
       ), colour = "black", size = hex.line.size) +
       scale_fill_viridis_c(name = fill.scale.title,
-                           limits = range(colour.brks(lims = colour.limits, n = n_breaks_in_legend, sig_figs = sig_figs_for_legend)), 
+                           limits = range(colour.limits, colour.brks(lims = colour.limits, n = n_breaks_in_legend, round_to = round_to_for_legend_change)),
                            oob = scales::squish, 
-                           breaks = colour.brks(lims = colour.limits, n = n_breaks_in_legend, sig_figs = sig_figs_for_legend),
+                           breaks = colour.brks(lims = colour.limits, n = n_breaks_in_legend, round_to = round_to_for_legend_state),
                            labels = colour.lable(x = col.lim.var.same.landscape ,
-                                                 lims = colour.limits , 
-                                                 dividor = dividor, sig_figs = sig_figs_for_legend),
+                                                 lims = colour.limits , n = n_breaks_in_legend, 
+                                                 round_to = round_to_for_legend_state),
                            #option = "magma",direction = -1 
                            guide = guide_colorbar(
                              direction = "horizontal", barheight = unit(2, units = "mm"),
@@ -142,7 +165,7 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
     
 
     # create directory for maps ----
-    dir.create(paste0(func.conect.path, "\\analysis outputs\\.maps\\all individual treescapes\\", all.hexgrids[[i]]$name), showWarnings = FALSE)
+    dir.create(paste0(func.conect.path, "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name), showWarnings = FALSE)
     
     # save plot ----
     
@@ -152,12 +175,12 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
     #        height = 5  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)))
     
     ggsave(plot, filename = paste0(func.conect.path, 
-                                   "\\analysis outputs\\.maps\\all individual treescapes\\", all.hexgrids[[i]]$name, "\\", 
+                                   "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\", 
                                    all.hexgrids[[i]]$name, all.hexgrids[[i]]$year, "_hex.ECA.pdf"),
            height = stand.plot.height  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)))
     
     ggsave(plot, filename = paste0(func.conect.path, 
-                                   "\\analysis outputs\\.maps\\all individual treescapes\\", all.hexgrids[[i]]$name, "\\", 
+                                   "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\", 
                                    all.hexgrids[[i]]$name, all.hexgrids[[i]]$year, "_hex.ECA.png"),
            height = stand.plot.height  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)), bg = "white", dpi = 900)
     
@@ -200,7 +223,7 @@ comparison.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
     annotate_figure(top = text_grob(joint.title, face = "bold", size = 11))
   
   # create directory for map plots
-  dir.create(paste0(func.conect.path, "\\analysis outputs\\.maps\\treescape comparison\\", all.hexgrids[[i]]$name), showWarnings = FALSE)
+  # dir.create(paste0(func.conect.path, "\\analysis outputs\\.maps\\treescape comparison\\", all.hexgrids[[i]]$name), showWarnings = FALSE)
 
   # ggsave(comparison.plot, filename = paste0(gis.wd, 
   #                                           "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\analysis outputs\\", this.tss[i], "\\comparison_", min(years.considered), "_", max(years.considered), "_hex.ECA.pdf"),
@@ -210,12 +233,12 @@ comparison.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
   
 
   ggsave(comparison.plot, filename = paste0(func.conect.path, 
-                                            "\\analysis outputs\\.maps\\treescape comparison\\", all.hexgrids[[i]]$name, "\\",
+                                            "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\comparison - ",
                                             min(years.considered), "_", max(years.considered), "_", this.tss[i], "_hex.ECA.pdf"),
          height = stand.plot.height  , width = stand.plot.width * 2 *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)))
 
   ggsave(comparison.plot, filename = paste0(func.conect.path, 
-                                            "\\analysis outputs\\.maps\\treescape comparison\\", all.hexgrids[[i]]$name, "\\",
+                                            "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\comparison - ",
                                             min(years.considered), "_", max(years.considered), "_", this.tss[i], "_hex.ECA.png"),
          height = stand.plot.height  , width = stand.plot.width * 2 *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)), dpi = 900, bg = "white")
   
@@ -250,10 +273,14 @@ change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
   
   # colour limits ----
   # set variable and weights to make colour scale
-  col.lim.var.same.landscape = as.data.frame(grid)[,names(grid) == col.lim.var.name]
-  col.lim.weights.same.landscape = as.data.frame(grid)[,names(grid) == "hex.ha"]
-  abs.col.lim = min(mean(abs(col.lim.var.same.landscape)) + 3* sd(abs(col.lim.var.same.landscape)),
-                    wtd.quantile (abs(col.lim.var.same.landscape), q = 0.98, na.rm = FALSE, weight= col.lim.weights.same.landscape))
+  col.lim.var.same.landscape = as.data.frame(grid)[,names(grid) == col.lim.var.name] %>% 
+    .[. != 0]    # remove all 0
+  col.lim.weights.same.landscape = as.data.frame(grid)[,names(grid) == "hex.ha"][col.lim.var.same.landscape!=0]
+  col.lim.var.same.landscape = col.lim.var.same.landscape[col.lim.var.same.landscape!=0]
+  
+  
+  abs.col.lim = min(mean(abs(col.lim.var.same.landscape)) + 4* sd(abs(col.lim.var.same.landscape)),
+                    wtd.quantile (abs(col.lim.var.same.landscape), q = 0.99, na.rm = FALSE, weight= col.lim.weights.same.landscape))
 
   colour.limits = c(-abs.col.lim, abs.col.lim) 
   dividor = 1
@@ -277,10 +304,10 @@ change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
     ), colour = "black", size = hex.line.size) +
     scale_fill_gradient2(name = fill.scale.title,
                          low= low.col, high= high.col ,
-                         breaks = colour.brks(lims = colour.limits, n = n_breaks_in_legend, sig_figs = sig_figs_for_legend),
-                         labels = colour.lable(x = col.lim.var.same.landscape ,
-                                               lims = colour.limits , dividor = dividor, sig_figs = sig_figs_for_legend),
-                         limits = colour.limits, 
+                         breaks = colour.brks(lims = colour.limits, n = n_breaks_in_legend_change, round_to = round_to_for_legend_change),
+                         labels = colour.lable(x = col.lim.var.same.landscape , n = n_breaks_in_legend_change,
+                                               lims = colour.limits , round_to = round_to_for_legend_change),
+                         limits = range(colour.limits, colour.brks(lims = colour.limits, n = n_breaks_in_legend_change, round_to = round_to_for_legend_change)),
                          oob = scales::squish,
                          guide = guide_colorbar(
                            direction = "horizontal", barheight = unit(2, units = "mm"),
@@ -301,11 +328,11 @@ change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
 
   # hotfix 12.07.22 - to make these more accessible.. hope it works, if no revert to above
   ggsave(plot, filename = paste0(func.conect.path,
-                                 "\\analysis outputs\\.maps\\treescape change\\", change.hexgrids[[i]]$name,"_", paste(change.hexgrids[[i]]$year, collapse = "_"), "_hex.ECAchange.pdf"),
+                                 "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\change - ", change.hexgrids[[i]]$name,"_", paste(change.hexgrids[[i]]$year, collapse = "_"), "_hex.ECAchange.pdf"),
          height = stand.plot.height  , width = stand.plot.width *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)))
   
   ggsave(plot, filename = paste0(func.conect.path, 
-                                 "\\analysis outputs\\.maps\\treescape change\\", change.hexgrids[[i]]$name,"_", paste(change.hexgrids[[i]]$year, collapse = "_"), "_hex.ECAchange.png"),
+                                 "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\change - ", change.hexgrids[[i]]$name,"_", paste(change.hexgrids[[i]]$year, collapse = "_"), "_hex.ECAchange.png"),
          height = stand.plot.height  , width = stand.plot.width *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)), bg = "white", dpi = 900)
   
   # plot ----
@@ -334,6 +361,6 @@ save(landscape.metrics.all,
      # eca.hexmap.plotly,
      # change.eca.hexmap.plotly, 
      file = paste0(func.conect.path, 
-              "\\analysis outputs\\", "\\r_plots_stats_change.RData")
+              "\\analysis outputs\\", all.hexgrids[[i]]$name, "\\r_plots_stats_change.RData")
 )
 
