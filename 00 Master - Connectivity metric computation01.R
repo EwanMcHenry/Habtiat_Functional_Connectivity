@@ -18,6 +18,8 @@ source("subparts of calculation\\sub01 - configuration.R") # configureation file
 # read subscript 02 - load uncurated global data ----
 # contains data used to define patches, and the landscape
 source("subparts of calculation\\sub02- load data01.R")
+# read sub 0.2.1 - curation of global data
+source("subparts of calculation\\sub02.1 - curate patch_agnostic.R")
 
 # set up loop for multiple years and landscapes ----
 this.ts.num = 1
