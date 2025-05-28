@@ -23,7 +23,7 @@ hex.grid = st_sf(hex.grid0) %>%
   # add grid ID
   mutate(grid_id = 1:length(lengths(hex.grid0)))
 
-# intersect with landscape - note that grid id is from original UK-wide grid, allows easy cross-ID
+# intersect hexgrid with landscape - note that grid id is from original UK-wide grid, allows easy cross-ID
 tsbuff.hexgrid <- st_intersection(hex.grid, ts.buff) %>% 
   st_make_valid() %>%  st_cast("MULTIPOLYGON") %>% st_cast("POLYGON") %>% 
   dplyr::select(grid_id)
@@ -62,10 +62,16 @@ if(this.country == "N.Ireland"){
   
 }
 
-lcm.landscape <- list()
+# Create a named list of rasters, keyed by year
+raster.list <- list(
+  "1990" = tsbuff.lcm90.rast25,
+  "2019" = tsbuff.lcm19.rast25
+)
 
-lcm.landscape[[1]] <- list(year = years.considered[1], raster = tsbuff.lcm19.rast25)
-lcm.landscape[[2]] <- list(year = years.considered[2], raster = tsbuff.lcm90.rast25)
+# Create lcm.landscape by explicitly matching years
+lcm.landscape <- lapply(years.considered, function(yr) {
+  list(year = yr, raster = raster.list[[as.character(yr)]])
+})
 
 # tscrop.lcm19.rast25.unpro <- crop(lcm19.rast25.unpro, extent(ts.buff))
 # tsbuff.lcm19.rast25.unpro <- fast_mask(tscrop.lcm19.rast25.unpro, ts.buff)
