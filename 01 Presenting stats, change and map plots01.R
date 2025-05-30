@@ -91,9 +91,19 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
 })
 
 #  SAVE SHAPEFILES ----
-# each year
+# take the hexgrid from the first year, then add selected cols from each next year and the change hexgrid, combine into one file and save as geopackage.
+# will need to rename cols to include the year, or "change" between the years
+
+# find if I can merge by grid_id? is grid_id in the same location for each?
+
+
+combo.hexgrid = all.hexgrids[[1]]$hexgrid
+
 for(i in seq_along(this.tss)){
   for(y in seq_along(years.considered)){
+    temp.hexgrid = all.hexgrids[[(i-1)*length(years.considered)+y]]$hexgrid
+    
+    
     write_sf(all.hexgrids[[(i-1)*length(years.considered)+y]]$hexgrid, 
              paste0(func.conect.path, "\\analysis outputs\\", 
                     this.tss[i], "\\", this.tss[i], "_", years.considered[y], "_hexgrid.gpkg"))
