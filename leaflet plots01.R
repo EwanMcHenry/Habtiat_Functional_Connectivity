@@ -4,29 +4,14 @@
 # should run independently if "Presenting stats, change..." code run
 
 # working directories ----
-maindrive = "D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust"
-#maindrive = "C:\\Users\\emc2\\OneDrive - The Woodland Trust"
-ts.wd = paste0(maindrive , "\\Treescapes analysis")
-gis.wd = paste0( maindrive, "\\GIS")
-func.conect.path = paste0(gis.wd, "\\Connectivity\\Functional connectivity\\functional conectivity metric dev")
-leaflet.path = paste0(func.conect.path, 
-                      "\\analysis outputs\\.maps\\leaflet maps")
 # libraries ----
+source("subparts of calculation\\sub00- loading libraries and functions.R")
+source("subparts of calculation\\sub01 - configuration.R") # configureation file
 
-library(tidyverse)
-library(sf) # for gis
-library(htmltools)
-library(leaflet)
-library(leaflet.providers)
 library(leaflet.extras)
-library(reldist)# for weighted quantile function
-library(scales) # colour_ramp() returns hexcode for colour interpolation 
 library(colourvalues) # for  colour_values(temp), default pallete is viridis
 library(htmlwidgets)
 library(leaflegend)
-
-source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans functions.R")
-source("D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust\\GIS\\Ewans gis specifications.R")
 
 # LOAD DATA
 load(paste0(func.conect.path, "\\analysis outputs\\", "\\r_plots_stats_change.RData"))
