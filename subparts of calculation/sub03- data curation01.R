@@ -20,11 +20,11 @@ this.country = st_intersection( st_point_on_surface(this.ts) , countries)$name.1
 
 # intersect hexgrid with landscape - note that grid id is from original UK-wide grid, allows easy cross-ID
 tsbuff.hexgrid <- st_intersection(hex.grid, ts.buff) %>% 
-  st_make_valid() %>%  st_cast("MULTIPOLYGON") %>% st_cast("POLYGON") %>% 
+  st_make_valid() %>%  st_cast("MULTIPOLYGON") %>% #st_cast("POLYGON") %>% 
   dplyr::select(grid_id)
 
 ts.hexgrid <- st_intersection(hex.grid, this.ts) %>% 
-  st_make_valid() %>%  st_cast("MULTIPOLYGON") %>% st_cast("POLYGON") %>% 
+  st_make_valid() %>%  st_cast("MULTIPOLYGON") %>% #st_cast("POLYGON") %>% 
   dplyr::select(grid_id) 
 ts.hexgrid$hex.ha = st_area(ts.hexgrid) %>% 
   set_units(value = "ha") %>%
