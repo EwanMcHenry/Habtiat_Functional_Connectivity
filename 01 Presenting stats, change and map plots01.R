@@ -53,7 +53,8 @@ for(i in seq_along(this.tss)){
                                                       bl.patch.hexid.centroids = bl.patch.hexid.centroids)
   }}
 
-# CURATE - create change in landscape and hexgrid objects change.hexgrids landscape.metrics.all.change ----
+# CURATE - create change in 
+## change in landscape landscape.metrics.all.change ----
 landscape.metrics.all.change = slice(landscape.metrics[, -2], 0)
 landscape.metrics.all.change[1: length(this.tss),] = NA
 
@@ -64,6 +65,7 @@ for(i in seq_along(this.tss)){
       landscape.metrics.all[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == min(years.considered),3:dim(landscape.metrics)[2]] 
     }
 
+## change in and hexgrid objects change.hexgrids
 change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
   dont.diff = c("grid_id", "hex.ha")
   col.to.diff = c("lcm.ncells", "bl.ncells", "landnotcoastal.ncells",
@@ -74,9 +76,11 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
                   "hex.standardised.euclid.eca") # one of these minus the next years is the difference
   
   
-  temp.grid = list(name = map_chr(all.hexgrids, "name")[map_dbl(all.hexgrids, "year") == max(years.considered) & map_chr(all.hexgrids, "name") ==  this.tss[i]], # map names, index this one
+  temp.grid = list(name = map_chr(all.hexgrids, "name")[map_dbl(all.hexgrids, "year") == max(years.considered) & 
+                                                          map_chr(all.hexgrids, "name") ==  this.tss[i]], # map names, index this one
                    years = years.considered, 
-                   hexgrid = all.hexgrids[[which(map_dbl(all.hexgrids, "year") == max(years.considered) & map_chr(all.hexgrids, "name") ==  this.tss[i])]]$hexgrid[,dont.diff]) # map hexgrids sf, index id, geometry and area of this named ts, most recent ( same for all years)
+                   hexgrid = all.hexgrids[[which(map_dbl(all.hexgrids, "year") == max(years.considered) & 
+                                                   map_chr(all.hexgrids, "name") ==  this.tss[i])]]$hexgrid[,dont.diff]) # map hexgrids sf, index id, geometry and area of this named ts, most recent ( same for all years)
   
   temp.grid$hexgrid[,(length(dont.diff)+2):(length(dont.diff) + length(col.to.diff)+1) ] = # rest cols == change from 1st to last year of this ts
     # mx year - min, as.df, indexing out ID and geometry
@@ -90,31 +94,69 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
   temp.grid
 })
 
-#  SAVE SHAPEFILES ----
-# take the hexgrid from the first year, then add selected cols from each next year and the change hexgrid, combine into one file and save as geopackage.
-# will need to rename cols to include the year, or "change" between the years
 
-# find if I can merge by grid_id? is grid_id in the same location for each?
-
-
-combo.hexgrid = all.hexgrids[[1]]$hexgrid
-
+# MERGE YEARLY DATA INTO ONE OBJECT FOR EACH TS
+combo.hexgrid = list()
 for(i in seq_along(this.tss)){
+  # start with hexgrid id, geometry and hex area, taken from the first year of this ts
+    combo.hexgrid[[i]] = all.hexgrids[[(i-1)*length(years.considered)+1]]$hexgrid[,c("grid_id", "hex.grid0", "hex.ha")] 
   for(y in seq_along(years.considered)){
+    # this year hexgrid
     temp.hexgrid = all.hexgrids[[(i-1)*length(years.considered)+y]]$hexgrid
+    # include year in name of cols
+    names(temp.hexgrid)[4:dim(temp.hexgrid)[2]] <-  paste0(names(temp.hexgrid)[4:dim(temp.hexgrid)[2]], "_", all.hexgrids[[(i-1)*length(years.considered)+y]]$year) # rename cols to include year
+    # match temp.hexgrid cols 4: length(names()) to combo.hexgrid by gridid and 
+    combo.hexgrid[[i]] = combo.hexgrid[[i]] %>%
+      left_join(as.data.frame(temp.hexgrid) %>%
+                  select(-hex.grid0, -hex.ha),
+                by = "grid_id") # join by grid_id, keep geometry and area, then rest cols
     
-    
-    write_sf(all.hexgrids[[(i-1)*length(years.considered)+y]]$hexgrid, 
-             paste0(func.conect.path, "\\analysis outputs\\", 
-                    this.tss[i], "\\", this.tss[i], "_", years.considered[y], "_hexgrid.gpkg"))
   }
 }
-# change
+
+
+# ADD CHANGE between years for each important.output.cols ----
+for (i in seq_along(combo.hexgrid)) {
+  for (j in seq_along(important.output.cols)) {
+    # create change col name
+    change.col.name <- paste(important.output.cols[j], "change", change_years[1],change_years[2], sep = "_")
+
+    # safely calculate the difference using [[ to get numeric vectors
+    combo.hexgrid[[i]][[change.col.name]] <-
+      combo.hexgrid[[i]][[paste0(important.output.cols[j], "_", change_years[2])]] -
+      combo.hexgrid[[i]][[paste0(important.output.cols[j], "_", change_years[1])]]
+  }
+}
+  
+# ORDER COLUMNS BY INDICATOR AND YEAR, WITH CHANGE ----
+  cols.order <- c("grid_id", "hex.grid0", "hex.ha")
+  for (ind in important.output.cols) {
+    cols.order <- c(
+      cols.order,
+      paste(ind, sort(years.considered), sep = "_"),
+      paste(ind, "change", change_years[1], change_years[2], sep = "_")
+    )
+  }
+  combo.hexgrid[[i]] = combo.hexgrid[[i]][,cols.order] # order cols by indicator, then year
+  
+  
+  # reoder to put change cols after the year cols for each indicator
+  change.cols.order <- c("grid_id", "hex.grid0", "hex.ha", 
+                         as.vector(outer(important.output.cols,
+                                         as.character(sort(years.considered)), 
+                                         paste, sep = "_")),
+                         as.vector(outer(important.output.cols,
+                                         paste0("_change"), 
+                                         paste, sep = "_"))
+  )
+}
+
+
 for(i in seq_along(this.tss)){
-  write_sf(change.hexgrids[[i]]$hexgrid, 
+  write_sf(combo.hexgrid[[i]], 
            paste0(func.conect.path, "\\analysis outputs\\", 
                   this.tss[i], "\\", 
-                  this.tss[i], "_", years.considered[1],"-",years.considered[2] , "_change_hexgrid.gpkg"))
+                  this.tss[i], "_", change_years[2],"-",change_years[1] , "_ECA_output_EMcH.gpkg"))
 }
 
 # INDIVIDAUL PLOTS - ggplots list - hexgird eca eca.hexmap  ---- 
