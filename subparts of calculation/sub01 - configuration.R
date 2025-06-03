@@ -102,3 +102,21 @@ constants$cost.scale.factor = max(dispers.costs$ecolog.cost)/5
 dispers.costs$scaled.ecolog.cost <-  dispers.costs$ecolog.cost/constants$cost.scale.factor
 
 
+
+# output configuration ----
+# for part of the shapefile output for sharing
+## note theses need to match the names in hexgrid and DO NOT include gridid, geometry etc
+## change is measured in each of these... so make sure that makes sense
+important.output.cols <- c("hex.standardised.leastcost.eca", 
+  "hex.standardised.euclid.eca",
+  "n.clumps",
+  "tot.patch.ha",
+  "tot.aw.patch.ha",
+  "tot.edge.patch.ha",
+  "tot.awedge.patch.ha",
+  "lcm.ncells",
+  "landnotcoastal.ncells")
+
+# years for which change is calculated, 
+## must be in years.considered and length 2
+change_years <- sort(c(2019, 1990)) 
