@@ -25,11 +25,13 @@ Includes:
 
 * standardised - adjusted for proportion of hex with "land"
   "hex.standardised.leastcost.eca" - primary connectivity metric - hex equivalent connected area (standardised for land area), using least cost distance between patches, and quality weighting ancient woodland and edge habitat, standardised to 1 in landscape
+
+not standardised:
   "hex.standardised.euclid.eca" - hex equivalent connected area (standardised for land area), using euclidean distance between patches, and quality weighting ancient woodland and edge habitat, standardised to 1 in landscape
   "hex.leastcost.eca" - total hex equivalent connected area, using least cost distance between patches, and quality weighting ancient woodland and edge habitat
   "hex.euclid.eca" - hex equivalent connected area, using euclidean distance between patches, and quality weighting ancient woodland and edge habitat
   
-* scaled - average in landscape has cost of 1
+* scaled - average cell in landscape has cost of 1
   "hex.standardised.scaled.leastcost.eca" - hex equivalent connected area (standardised for land area), using least cost distance between patches, cell cost scaled so that average cost in landscape = 1, and quality weighting ancient woodland and edge habitat
   "hex.scaled.leastcost.eca" - hex equivalent connected area, using least cost distance between patches with cell cost scaled so that average cost in landscape = 1, and quality weighting ancient woodland and edge habitat, 
   "mean.scaled.ecolog.cost.not.sea" - mean scaled ecological cost within hex
