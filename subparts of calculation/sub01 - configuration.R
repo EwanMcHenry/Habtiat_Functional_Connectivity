@@ -24,14 +24,19 @@ leaflet.path = paste0(func.conect.path,
 # Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\BBNP\\bbnpa_poly.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
 # Focal_landscape$name = "nau Brycheiniog National Park"
 
-Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\Wye_Catchment\\Wye_Catchment.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
-Focal_landscape$name = "Wye Catchment"
+# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\Wye_Catchment\\Wye_Catchment.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
+# Focal_landscape$name = "Wye Catchment"
+
+Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\FCF local_authority_boundaries\\FCF_local_authority_boundaries.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
+Focal_landscape$name = "Forth Climate Forest"
 
 
 ## Define year ----
 years.considered = c(2019, 1990) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years.considered = c( 2019) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 
+# target quantile to maximise
+quantile_target = 0.7 # the 30% highest hex - a target for the conectivity metric to be maximised, spreading out naturerecovery
 
 # SET MODEL CONSTANTS ----
 constants <- list(
