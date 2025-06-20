@@ -95,7 +95,7 @@ change.hexgrids <- lapply(seq_along(this.tss), FUN = function(i) {
 })
 
 
-# MERGE YEARLY DATA INTO ONE OBJECT FOR EACH TS
+## MERGE YEARLY DATA INTO ONE OBJECT FOR EACH TS ----
 combo.hexgrid = list()
 for(i in seq_along(this.tss)){
   # start with hexgrid id, geometry and hex area, taken from the first year of this ts
@@ -115,7 +115,7 @@ for(i in seq_along(this.tss)){
 }
 
 
-# ADD CHANGE between years for each important.output.cols ----
+#### ADD CHANGE between years for each important.output.cols ----
 for (i in seq_along(combo.hexgrid)) {
   for (j in seq_along(important.output.cols)) {
     # create change col name
@@ -128,7 +128,7 @@ for (i in seq_along(combo.hexgrid)) {
   }
 }
   
-# ORDER COLUMNS BY INDICATOR AND YEAR, WITH CHANGE ----
+#### ORDER COLUMNS BY INDICATOR AND YEAR, WITH CHANGE ----
   cols.order <- c("grid_id", "hex.grid0", "hex.ha")
   for (ind in important.output.cols) {
     cols.order <- c(
@@ -140,18 +140,6 @@ for (i in seq_along(combo.hexgrid)) {
   combo.hexgrid[[i]] = combo.hexgrid[[i]][,cols.order] # order cols by indicator, then year
   
   
-  # reoder to put change cols after the year cols for each indicator
-  change.cols.order <- c("grid_id", "hex.grid0", "hex.ha", 
-                         as.vector(outer(important.output.cols,
-                                         as.character(sort(years.considered)), 
-                                         paste, sep = "_")),
-                         as.vector(outer(important.output.cols,
-                                         paste0("_change"), 
-                                         paste, sep = "_"))
-  )
-}
-
-
 for(i in seq_along(this.tss)){
   write_sf(combo.hexgrid[[i]], 
            paste0(func.conect.path, "\\analysis outputs\\", 
@@ -162,10 +150,10 @@ for(i in seq_along(this.tss)){
 # INDIVIDAUL PLOTS - ggplots list - hexgird eca eca.hexmap  ---- 
 
   eca.hexmap <- lapply(seq_along(all.hexgrids), FUN = function(i) {
-    # variables ----
+    ### variables ----
     var.name = "hex.standardised.leastcost.eca" # small hex area scales for
-    col.lim.var.name = "hex.leastcost.eca" # this solves issue where small portion-hexes with high cover where skewing colour scale. If they are high they get high colour, but dont mess with the scale
-    
+    col.lim.var.name = "hex.leastcost.eca" # hex.leastcost.eca solves issue where small portion-hexes with high cover where skewing colour scale. If they are high they get high colour, but dont mess with the scale
+
     main.title = paste("Bigger, better, more joined up: functional connectivity of native woodland")
     sub.title = paste0(this.tss[this.tss == all.hexgrids[[i]]$name], " ", all.hexgrids[[i]]$year, ". Landscape ECA(PC) = ",landscape.metrics.all$leastcost.ECA[i]  %>%  round( digits = 0) %>% format( big.mark = ","), " ha"  )
     fill.scale.title = "ECA(PC) (ha)"
@@ -173,7 +161,7 @@ for(i in seq_along(this.tss)){
     grid = all.hexgrids[[i]]$hexgrid %>% st_simplify(dTolerance = 100)
     var = as.data.frame(grid)[,names(grid) == var.name]
     
-    # colour limits & plot ----
+    ##### colour limits & plot ----
     # set variable and weights to make colour scale
     col.lim.var.same.landscape = as.data.frame(bind_rows(map(all.hexgrids, "hexgrid")[# all the hexgrids
       map(all.hexgrids, "name") == all.hexgrids[[i]]$name ]))[,col.lim.var.name] # that have same name as this one (n = n.years), extract this variable and concat into single vector
@@ -183,8 +171,13 @@ for(i in seq_along(this.tss)){
     col.lim.var.same.landscape = col.lim.var.same.landscape[col.lim.var.same.landscape !=0]
     
     colour.limits = c(0,min(mean(col.lim.var.same.landscape) + 4* sd(col.lim.var.same.landscape),
-                             wtd.quantile (col.lim.var.same.landscape, q = 0.99, na.rm = FALSE, weight= col.lim.weights.same.landscape))) 
+                             wtd.quantile (col.lim.var.same.landscape, q = 0.99, 
+                                           na.rm = FALSE, weight= col.lim.weights.same.landscape))) 
     dividor = 1
+    ### create directory for maps ----
+    dir.create(paste0(func.conect.path, "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name), showWarnings = FALSE)
+    
+    ### map plot ----
 
     plot = ggplot(data=grid) +
       geom_sf(data = world %>%  st_transform(27700), size = 0.1) +
@@ -216,10 +209,8 @@ for(i in seq_along(this.tss)){
       ) 
     
 
-    # create directory for maps ----
-    dir.create(paste0(func.conect.path, "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name), showWarnings = FALSE)
     
-    # save plot ----
+    ##### save plot ----
     
     # ggsave(plot, filename = paste0(func.conect.path, 
     #                                "\\analysis outputs\\", all.hexgrids[[i]]$name, "\\", all.hexgrids[[i]]$year, 
@@ -236,40 +227,77 @@ for(i in seq_along(this.tss)){
                                    all.hexgrids[[i]]$name, all.hexgrids[[i]]$year, "_hex.ECA.png"),
            height = stand.plot.height  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)), bg = "white", dpi = 900)
     
-    # plot ----
-    plot
+    # POINT PLOT ----
+    max_pointplot = max(colour.limits, colour.brks(lims = colour.limits, n = n_breaks_in_legend, round_to = round_to_for_legend_change))
+    point_data <-  data.frame(var = sort(var), order= 1:length(var))
+    target_hex <-  data.frame (var = quantile(point_data$var, probs = quantile_target),
+                                order = round(length(var)*quantile_target) )
+    point_data$var[point_data$var > max_pointplot] <- max_pointplot # just hold at max
+    
+    point_plot = ggplot(point_data, aes(x = order, y = var, colour = var)) +
+      geom_point(stat = "identity", size = 0.1) +
+      scale_y_continuous(name = "ECA(PC) (ha)", 
+                         breaks = pretty_breaks(n = n_breaks_in_legend_change, round_to = round_to_for_legend_change)) +
+      scale_x_discrete(name = "Order") +
+      scale_colour_viridis_c(name = fill.scale.title,
+                           limits = range(colour.limits, colour.brks(lims = colour.limits, n = n_breaks_in_legend, round_to = round_to_for_legend_change)),
+                           oob = scales::squish,
+                           guide = F) +
+      labs(title = paste("ECA(PC) for hexes in", all.hexgrids[[i]]$name, all.hexgrids[[i]]$year)) +
+      theme_pubr() +
+      theme(plot.title = element_text(hjust = 0.5, size = 10),
+            axis.text.y = element_text(size = 8),
+            axis.text.x = element_text(size = 8))
+    
+    #pointplot with lines highlighting target quantile ECA
+    point_plot_with_target <- point_plot +
+      geom_hline(data = target_hex, aes(yintercept = var), linetype = "dashed", color = "red") +
+      geom_segment(data = target_hex, aes(x = order, xend = order, y = 0, yend = var), color = "red") +
+      geom_text(data = target_hex, aes(x = order/2, y = var, 
+                                       label = paste0((1 - quantile_target) * 100, "% threshold: ECA = ", round(var, 2), " ha")), 
+                vjust = -0.5, hjust = 1, color = "red", size = 3.5) +
+      theme(legend.position = "none")
+
+    #### save point plots ----
+    dir.create(paste0(func.conect.path, "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\point plots"), showWarnings = FALSE)
+    ggsave(point_plot, filename = paste0(func.conect.path, 
+                                         "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\point plots\\", 
+                                         all.hexgrids[[i]]$name, all.hexgrids[[i]]$year, "_hex.ECA.point.pdf"),
+           height = stand.plot.height/3  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)))
+    ggsave(point_plot, filename = paste0(func.conect.path, 
+                                         "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\point plots\\", 
+                                         all.hexgrids[[i]]$name, all.hexgrids[[i]]$year, "_hex.ECA.point.png"),
+           height = stand.plot.height/3  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)), bg = "white", dpi = 900)
+    # save point plot with target
+    ggsave(point_plot_with_target, filename = paste0(func.conect.path, 
+                                                     "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\point plots\\", 
+                                                     all.hexgrids[[i]]$name, all.hexgrids[[i]]$year, "_hex.ECA.point.with_target.pdf"),
+           height = stand.plot.height/3  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)))
+    ggsave(point_plot_with_target, filename = paste0(func.conect.path, 
+                                                     "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\point plots\\", 
+                                                     all.hexgrids[[i]]$name, all.hexgrids[[i]]$year, "_hex.ECA.point.with_target.png"),
+           height = stand.plot.height/3  , width = stand.plot.width *  max(1,1/(all.hexgrids[[i]]$height.width.ratio)), bg = "white", dpi = 900)
+    
+    
+    ### output ----
+    list(map = plot,
+         points = list(point_plot,
+                       point_plot_with_target),
+         target_hex = target_hex)
     
   })
 
-    ## save individual hex plots together as one pdf ----
-# ggsave(
-#   filename = paste0(func.conect.path, 
-#                     "\\analysis outputs\\.maps\\",
-#   "Treescapes_", paste(years.considered, collapse = "_"),"_hex.ECA.pdf"), 
-#   plot = marrangeGrob(eca.hexmap, nrow=1, ncol=1, top = NULL), 
-#   width = stand.plot.width , height = stand.plot.height
-# )
+# source("archive\\save hex plots as one pdf.R")
 
-    ## plotly for each individual map ----  
-    # eca.hexmap.plotly <- lapply(seq_along(all.hexgrids), FUN = function(i) {
-    #   plotly_build(ggplotly(eca.hexmap[[i]], tooltip = "text", 
-    #                         dynamicTicks = T) %>%
-    #                  config(displayModeBar = FALSE) %>% layout(hoverlabel = list(align = "left")))
-    #   # 
-    #   # all.hexgrids[[i]] = append(all.hexgrids[[i]], print(eca.hexmap) ) %>%
-    #   #   append(., print(eca.hexmap.plotly) )
-    # })
-    
-    
 # COMPARISON PLOTS -  ggplot list comparison.eca.hexmap ----
 comparison.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
   joint.title = paste("Bigger, better, more joined up: Functional connectivity of native woodland")#, nice.names[i])
   sub.title01 = paste0("Landscape ECA(PC) = ",landscape.metrics.all$leastcost.ECA[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == min(years.considered)]  %>%  round( digits = 0) %>% format( big.mark = ","), " ha")
   sub.title02 = paste0("Landscape ECA(PC) = ",landscape.metrics.all$leastcost.ECA[landscape.metrics.all$name == this.tss[i] & landscape.metrics.all$year == max(years.considered)]  %>%  round( digits = 0) %>% format( big.mark = ","), " ha")
 
-  comparison.plot = ggarrange( eca.hexmap[map(all.hexgrids, "name") == this.tss[i] & map(all.hexgrids, "year") == min(years.considered)][[1]]+
+  comparison.plot = ggarrange( eca.hexmap[map(all.hexgrids, "name") == this.tss[i] & map(all.hexgrids, "year") == min(years.considered)][[1]]$map+
                                  labs(title = min(years.considered), subtitle = sub.title01),
-                               eca.hexmap[map(all.hexgrids, "name") == this.tss[i] & map(all.hexgrids, "year") == max(years.considered)][[1]]+
+                               eca.hexmap[map(all.hexgrids, "name") == this.tss[i] & map(all.hexgrids, "year") == max(years.considered)][[1]]$map+
                                  labs(title = max(years.considered), subtitle = sub.title02),
                                ncol = 2, common.legend = TRUE, legend = "bottom") %>%
     annotate_figure(top = text_grob(joint.title, face = "bold", size = 11))
@@ -296,7 +324,53 @@ comparison.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
   
   comparison.plot
 })
+ 
   
+# TODO - add point plots for comparison plots
+# # Point plots comparision ----
+# poits_threshold_comparision <- lapply(seq_along(this.tss), FUN = function(i) {
+#   # variables ----
+#   var.name = "hex.standardised.leastcost.eca" # small hex area scales for
+#   col.lim.var.name = "hex.leastcost.eca" # hex.leastcost.eca solves issue where small portion-hexes with high cover where skewing colour scale. If they are high they get high colour, but dont mess with the scale
+#   
+#   main.title = paste("Bigger, better, more joined up: functional connectivity of native woodland")
+#   sub.title = paste0("Change in functional connectivity in ", nice.names[this.tss == change.hexgrids[[i]]$name], " ", 
+#                      min(change.hexgrids[[i]]$year), " to ", max(change.hexgrids[[i]]$year), 
+#                      "\nTotal change in ECA(PC) = ",landscape.metrics.all.change$leastcost.ECA[i]  %>%  round( digits = 0) %>% format( big.mark = ","), " ha"  )
+#   
+#   
+#   #####
+#   var = as.data.frame(grid)[,names(grid) == var.name]
+#   map(all.hexgrids, "hexgrid")$hex.standardised.leastcost.eca
+#   
+#   
+#   col.lim.weights.same.landscape = as.data.frame(bind_rows(
+#     map(all.hexgrids, "hexgrid")[var.name]# all the hexgrids
+#     map(all.hexgrids, "name") == all.hexgrids[[i]]$name ]))[, "hex.ha"] # that have same name as this one (n = n.years), extract the hex area and concat into single vector
+#   
+#   
+#   ######
+#   
+#   grid = change.hexgrids[[i]]$hexgrid %>% st_simplify(dTolerance = 100)
+#   
+#   
+#   map(all.hexgrids, "name") == this.tss[[i]] ]))[,col.lim.var.name]
+#   
+#   
+#   # colour limits & plot ----
+#   # set variable and weights to make colour scale
+#   col.lim.var.same.landscape = as.data.frame(grid)[,names(grid) == col.lim.var.name] %>% 
+#     .[. != 0]    # remove all 0
+#   col.lim.weights.same.landscape = as.data.frame(grid)[,names(grid) == "hex.ha"][col.lim.var.same.landscape!=0]
+#   col.lim.var.same.landscape = col.lim.var.same.landscape[col.lim.var.same.landscape!=0]
+#   
+#   colour.limits = c(-min(mean(abs(col.lim.var.same.landscape)) + 4* sd(abs(col.lim.var.same.landscape)),
+#                          wtd.quantile (abs(col.lim.var.same.landscape), q = 0.99, na.rm = FALSE, weight= col.lim.weights.same.landscape)),
+#                     min(mean(abs(col.lim.var.same.landscape)) + 4* sd(abs(col.lim.var.same.landscape)),
+#                         wtd.quantile (abs(col.lim.var.same.landscape), q = 0.99, na.rm = FALSE
+    
+  
+       
 # CHANGE PLOTS - ggplot list - change in eca  ----
 
 change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
@@ -304,6 +378,8 @@ change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
 
   var.name = "hex.standardised.leastcost.eca" # small hex area scales for
   col.lim.var.name = "hex.leastcost.eca" # this solves issue where small portion-hexes with high cover where skewing colour scale. If they are high they get high colour, but dont mess with the scale
+  hist.var.name = "hex.leastcost.eca" # variable to use for histogram
+  
   
   main.title = paste("Bigger, better, more joined up: functional connectivity of native woodland")
   sub.title = paste0("Change in functional connectivity in ", nice.names[this.tss == change.hexgrids[[i]]$name], " ", 
@@ -313,6 +389,8 @@ change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
   
   grid = change.hexgrids[[i]]$hexgrid %>% st_simplify(dTolerance = 100)
   var = as.data.frame(grid)[,names(grid) == var.name]
+  hist_var = as.data.frame(grid)[,names(grid) == hist.var.name]
+  
   low.col = E.cols$connectiv.low
   high.col = E.cols$connectiv.high
   bigmark.round.pos <- function(x, digits = 0) {
@@ -387,10 +465,49 @@ change.eca.hexmap <- lapply(seq_along(this.tss), FUN = function(i) {
                                  "\\analysis outputs\\.maps\\", all.hexgrids[[i]]$name, "\\change - ", change.hexgrids[[i]]$name,"_", paste(change.hexgrids[[i]]$year, collapse = "_"), "_hex.ECAchange.png"),
          height = stand.plot.height  , width = stand.plot.width *  max(1,1/(change.hexgrids[[i]]$height.width.ratio)), bg = "white", dpi = 900)
   
-  # plot ----
-  plot
   
-})
+  
+  # change in eca histogram ----
+  # Precompute histogram
+  hist_data <- hist(hist_var, breaks = 50, plot = FALSE)
+  # Create data frame
+  hist_df <- data.frame(
+    count = hist_data$counts,
+    bin = hist_data$mids
+  )
+  
+  # Plot using geom_col and gradient fill
+  change_hex_hist <- ggplot(hist_df, aes(x = bin, y = count, fill = bin)) +
+    geom_col(color = "black", width = diff(hist_data$breaks)[1]) +
+    scale_y_continuous(name = "Count", 
+                       limits = c(0, max(hist_df$count[abs(hist_df$bin)>min(abs(hist_df$bin))])) * 1.1) +
+    scale_fill_gradient2(
+      low = low.col,
+      high = high.col,
+      breaks = colour.brks(lims = colour.limits, n = n_breaks_in_legend_change, round_to = round_to_for_legend_change),
+      labels = colour.lable(
+        x = col.lim.var.same.landscape,
+        n = n_breaks_in_legend_change,
+        lims = colour.limits,
+        round_to = round_to_for_legend_change
+      ),
+      limits = range(
+        colour.limits,
+        colour.brks(lims = colour.limits, n = n_breaks_in_legend_change, round_to = round_to_for_legend_change)
+      ),
+      oob = scales::squish,
+      guide = "none"
+    ) +
+    theme_pubr()
+  
+  # save histogram ----
+  
+  
+      # plot ----
+  list(map = plot,
+       change_hex_hist = change_hex_hist)
+  })
+  
 
 ## plotly change maps ----  
 # change.eca.hexmap.plotly <- lapply(seq_along(this.tss), FUN = function(i) {
