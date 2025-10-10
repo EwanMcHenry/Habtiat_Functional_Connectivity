@@ -34,45 +34,50 @@ ts.hexgrid$hex.ha = st_area(ts.hexgrid) %>%
 # different lcm for NI/GB
 if(this.country == "N.Ireland"){
   
-  lcm19.rast25 = lcm19.rast25.ni #%>% projectRaster(., crs = crs(lcm19.rast25.gb), method = "ngb")
-  lcm90.rast25 = lcm90.rast25.ni #%>% projectRaster(., crs = crs(lcm90.rast25.gb), method = "ngb")
+  lcm_tplus1.rast25 = lcm_tplus1.rast25.ni #%>% projectRaster(., crs = crs(lcm_tplus1.rast25.gb), method = "ngb")
+  lcm_t.rast25 = lcm_t.rast25.ni #%>% projectRaster(., crs = crs(lcm_t.rast25.gb), method = "ngb")
 
   ## cut LCM to landscape
-  tscrop.lcm19.rast25 <- crop(lcm19.rast25, extent(ts.buff %>% st_transform(29903) ))
-  tsbuff.lcm19.rast25 <- fast_mask(tscrop.lcm19.rast25, ts.buff %>% st_transform(29903))
+  tscrop.lcm_tplus1.rast25 <- crop(lcm_tplus1.rast25, extent(ts.buff %>% st_transform(29903) ))
+  tsbuff.lcm_tplus1.rast25 <- fast_mask(tscrop.lcm_tplus1.rast25, ts.buff %>% st_transform(29903))
   
-  tscrop.lcm90.rast25 <- crop(lcm90.rast25, extent(ts.buff %>% st_transform(29903)))
-  tsbuff.lcm90.rast25 <- fast_mask(tscrop.lcm90.rast25, ts.buff %>% st_transform(29903))
+  tscrop.lcm_t.rast25 <- crop(lcm_t.rast25, extent(ts.buff %>% st_transform(29903)))
+  tsbuff.lcm_t.rast25 <- fast_mask(tscrop.lcm_t.rast25, ts.buff %>% st_transform(29903))
   
   } else{
-  lcm19.rast25 = lcm19.rast25.gb
-  lcm90.rast25 = lcm90.rast25.gb
+  lcm_tplus1.rast25 = lcm_tplus1.rast25.gb
+  lcm_t.rast25 = lcm_t.rast25.gb
 
   ## cut LCM to landscape
-  tscrop.lcm19.rast25 <- crop(lcm19.rast25, extent(ts.buff))
-  tsbuff.lcm19.rast25 <- fast_mask(tscrop.lcm19.rast25, ts.buff)
+  tscrop.lcm_tplus1.rast25 <- crop(lcm_tplus1.rast25, extent(ts.buff))
+  tsbuff.lcm_tplus1.rast25 <- fast_mask(tscrop.lcm_tplus1.rast25, ts.buff)
   
-  tscrop.lcm90.rast25 <- crop(lcm90.rast25, extent(ts.buff))
-  tsbuff.lcm90.rast25 <- fast_mask(tscrop.lcm90.rast25, ts.buff)
+  tscrop.lcm_t.rast25 <- crop(lcm_t.rast25, extent(ts.buff))
+  tsbuff.lcm_t.rast25 <- fast_mask(tscrop.lcm_t.rast25, ts.buff)
   
 }
 
 # Create a named list of rasters, keyed by year
-raster.list <- list(
-  "1990" = tsbuff.lcm90.rast25,
-  "2019" = tsbuff.lcm19.rast25
+
+raster.list <- setNames(
+  list(
+    tsbuff.lcm_t.rast25,
+    tsbuff.lcm_tplus1.rast25
+  ),
+  sort(years.considered)
 )
+
 
 # Create lcm.landscape by explicitly matching years
 lcm.landscape <- lapply(years.considered, function(yr) {
   list(year = yr, raster = raster.list[[as.character(yr)]])
 })
 
-# tscrop.lcm19.rast25.unpro <- crop(lcm19.rast25.unpro, extent(ts.buff))
-# tsbuff.lcm19.rast25.unpro <- fast_mask(tscrop.lcm19.rast25.unpro, ts.buff)
+# tscrop.lcm_tplus1.rast25.unpro <- crop(lcm_tplus1.rast25.unpro, extent(ts.buff))
+# tsbuff.lcm_tplus1.rast25.unpro <- fast_mask(tscrop.lcm_tplus1.rast25.unpro, ts.buff)
 # 
-# tscrop.lcm90.rast25.unpro <- crop(lcm90.rast25.unpro, extent(ts.buff))
-# tsbuff.lcm90.rast25.unpro <- fast_mask(tscrop.lcm90.rast25.unpro, ts.buff)
+# tscrop.lcm_t.rast25.unpro <- crop(lcm_t.rast25.unpro, extent(ts.buff))
+# tsbuff.lcm_t.rast25.unpro <- fast_mask(tscrop.lcm_t.rast25.unpro, ts.buff)
 
 
 ### select awi ----
@@ -89,10 +94,10 @@ if(this.country == "Scotland"){
 } else{ tsbuff.nwss = NA}
 
 ### rasterise layers with same config as lcm
-tsbuff.rast = fasterize(ts.buff, tsbuff.lcm19.rast25)
-tsbuff.awi.raster = fasterize(tsbuff.awi %>% st_as_sf(), tsbuff.lcm19.rast25)
+tsbuff.rast = fasterize(ts.buff, tsbuff.lcm_tplus1.rast25)
+tsbuff.awi.raster = fasterize(tsbuff.awi %>% st_as_sf(), tsbuff.lcm_tplus1.rast25)
 if(this.country == "Scotland"){
-  tsbuff.nwss.raster = fasterize(tsbuff.nwss %>% st_as_sf(), tsbuff.lcm19.rast25) %>% 
+  tsbuff.nwss.raster = fasterize(tsbuff.nwss %>% st_as_sf(), tsbuff.lcm_tplus1.rast25) %>% 
   buffr (., distance = 25, units = "geographic", target_value = 1)
 } else{ tsbuff.nwss.raster = NA}
 
@@ -104,10 +109,10 @@ nwss.landscape = tsbuff.nwss.raster
 ### save ----
 save(awi.landscape, 
      nwss.landscape,
-  #tsbuff.lcm19.rast25,
-     #tsbuff.lcm90.rast25,
-     # tsbuff.lcm19.rast25.unpro, 
-     # tsbuff.lcm90.rast25.unpro, 
+  #tsbuff.lcm_tplus1.rast25,
+     #tsbuff.lcm_t.rast25,
+     # tsbuff.lcm_tplus1.rast25.unpro, 
+     # tsbuff.lcm_t.rast25.unpro, 
      tsbuff.awi, 
      #tsbuff.nwss,
      tsbuff.nwss.raster,
@@ -123,16 +128,16 @@ save(awi.landscape,
     )
 
 # save some space in RAM by removing some objects ----
-rm(awi, lcm19.rast25.ni,hex.grid0, hex.grid, nwss, 
+rm(awi, lcm_tplus1.rast25.ni,hex.grid0, hex.grid, nwss, 
    tsbuff.nwss, 
    tsbuff.nwss.raster,
-   tsbuff.awi.raster, lcm19.rast25, lcm90.rast25, tsbuff.rast, 
-   tsbuff.lcm19.rast25, tsbuff.lcm90.rast25,
-   tscrop.lcm19.rast25, tscrop.lcm90.rast25, 
-   lcm19.rast25.gb,
-   lcm90.rast25.ni,
-   lcm90.rast25.gb#, 
-   #tsbuff.lcm19.rast25.unpro, tsbuff.lcm90.rast25.unpro
+   tsbuff.awi.raster, lcm_tplus1.rast25, lcm_t.rast25, tsbuff.rast, 
+   tsbuff.lcm_tplus1.rast25, tsbuff.lcm_t.rast25,
+   tscrop.lcm_tplus1.rast25, tscrop.lcm_t.rast25, 
+   lcm_tplus1.rast25.gb,
+   lcm_t.rast25.ni,
+   lcm_t.rast25.gb#, 
+   #tsbuff.lcm_tplus1.rast25.unpro, tsbuff.lcm_t.rast25.unpro
    )
 gc()
 print("Data curation (script03) done")
