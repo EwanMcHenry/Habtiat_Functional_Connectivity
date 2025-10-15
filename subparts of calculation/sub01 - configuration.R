@@ -7,7 +7,7 @@
 
 # read.csv(paste0(func.conect.path, "\\Data\\delphi point estimate summary.csv"))
 
-
+# Directories ----
 ## working directories ----
 # maindrive = "D:\\Users\\Ewan McHenry\\OneDrive - the Woodland Trust"
 # #maindrive = "C:\\Users\\emc2\\OneDrive - The Woodland Trust"
@@ -16,7 +16,7 @@ func.conect.path = paste0(gis.wd, "\\Connectivity\\Habtiat_Functional_Connectivi
 leaflet.path = paste0(func.conect.path, 
                       "\\analysis outputs\\.maps\\leaflet maps")
 
-## DEFINE LANDSCAPE(S) ----
+## landscape directory - DEFINE focal LANDSCAPE(S) ----
 # landscape must be a single polygon... obviously, st_union is to make sure.
 # Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
 # Focal_landscape <- Focal_landscape[10,]
@@ -27,14 +27,39 @@ leaflet.path = paste0(func.conect.path,
 # Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\Wye_Catchment\\Wye_Catchment.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
 # Focal_landscape$name = "Wye Catchment"
 
-Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\FCF local_authority_boundaries\\FCF_local_authority_boundaries.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
-Focal_landscape$name = "Forth Climate Forest"
+# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\FCF local_authority_boundaries\\FCF_local_authority_boundaries.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
+# Focal_landscape$name = "Forth Climate Forest"
 
+### Northern Forest ----
+Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
+Focal_landscape <- Focal_landscape[7,]
+Focal_landscape$name = "Northern Forest"
+
+
+### Example landscape in Northern Forest ----
+# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
+# Focal_landscape <- Focal_landscape[7,]
+# Focal_landscape$name = "e.g. NF landscape"
+# # find center of landscape
+# landscape_centroid = st_centroid(Focal_landscape$geometry)
+# # cut out a 10x10 km square around the centroid and overwrite Focal_landscape
+# centroid.square = st_buffer(landscape_centroid, 7071) %>% st_bbox() %>% st_as_sfc() # 7071m is half the diagonal of a 10x10km square
+# Focal_landscape$geometry = st_intersection(Focal_landscape$geometry, centroid.square)
+
+## AWI directory ----
+awi.dir <- paste0(gis.wd, "\\Data\\ancient woodland\\original\\AWI_joined_v4.02.shp")
+
+## NWSS directory ----
+nwss.dir <- paste0(gis.wd, "\\Data\\NWSS\\Native_Woodland_Survey_of_Scotland.shp")
 
 ## Define year ----
-years.considered = c(2019, 1990) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
+years.considered = c(2024, 2017) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years.considered = c( 2019) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
+# years for which change is calculated, 
+## must be in years.considered and length 2
+change_years <- sort(years.considered) 
 
+# Indicators ----
 # target quantile to maximise
 quantile_target = 0.7 # the 30% highest hex - a target for the conectivity metric to be maximised, spreading out naturerecovery
 
@@ -122,6 +147,3 @@ important.output.cols <- c("hex.standardised.leastcost.eca",
   "lcm.ncells",
   "landnotcoastal.ncells")
 
-# years for which change is calculated, 
-## must be in years.considered and length 2
-change_years <- sort(c(2019, 1990)) 
