@@ -14,7 +14,7 @@ world <- ne_countries(scale = "large", returnclass = "sf")
 
 # configuration ----
 
-nice.names = this.tss
+nice.names = Focal_landscape$name
 
 stand.plot.height = 7 # plot height ratio
 stand.plot.width = 6 # plot width ratio
