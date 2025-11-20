@@ -14,37 +14,14 @@ library(htmlwidgets)
 library(leaflegend)
 
 # LOAD DATA
-load(paste0(func.conect.path, "\\analysis outputs\\", "\\r_plots_stats_change.RData"))
+load(paste0(func.conect.path,  "\\analysis outputs\\", Focal_landscape$name, "\\r_plots_stats_change.RData"))
 
-# hot fix for dispersal cost scaling ------
-hot.fix = 0 # logical - had full loop been run since 6/6/2022 when hotfix of bug in hex median cost put in
-# hotfix cost.scale.factor- 
-eycott = read.csv(paste0(gis.wd, "\\Connectivity\\Functional connectivity\\functional conectivity metric dev\\hab costs and edge effects Eycott 2011.csv"))
-eycott$guy.cost[eycott$guy.cost == 1000] = 50 # hot fix - saltwater guy cost too high (1000), messes with scaling of costs (need to be scaled to not have range of 1000s to make algorithm run nice), here I make it more reasonable
-
-dispers.costs <- data.frame(hab = eycott$hab,
-                            hab.num = eycott$hab.num %>% as.factor(),
-                            ecolog.cost = eycott$guy.cost,
-                            edge.extent = eycott$eycott.edge.extent
-                            )
-cost.scale.factor = max(dispers.costs$ecolog.cost)/5
-
-# hot fix 
-if (hot.fix==1){
-  for( ii in 1: length(map(all.hexgrids, "hexgrid"))){
-    all.hexgrids[[ii]]$hexgrid$mean.scaled.ecolog.cost.not.sea = all.hexgrids[[ii]]$hexgrid$mean.scaled.ecolog.cost.not.sea * cost.scale.factor
-    all.hexgrids[[ii]]$hexgrid$median.scaled.ecolog.cost.not.sea = all.hexgrids[[ii]]$hexgrid$median.scaled.ecolog.cost.not.sea * cost.scale.factor
-  }
-}
-
-# delete above when hotfix not needed
 # create directory for saving leaflet maps as .html ----
 dir.create(leaflet.path)
 
 # DEFINE LANDSCAPE(S) and constants ----
-this.tss = ts.andAll.lcm.names # vector of names of all landscapes to be calculated over
-this.years = c( 2019, 1990) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
-nice.names = ts.andAll.nice.names
+this.years = years.considered # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
+nice.names = this.tss
 
 # LEAFLET MAP of connectivity in each year and change ----
 rr <- tags$div(
