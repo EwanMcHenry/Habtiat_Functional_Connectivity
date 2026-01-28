@@ -96,10 +96,10 @@ for (hthhex in 1:length(unique(bl.patch.hexid.centroids$grid_id[bl.patch.hexid.c
 time.now - Sys.time()
 # rescale cost distance to actual effective distance (before costs scaled to be close to 1 for computational efficiency)
 effective.distance = big.cost.dist*constants$cost.scale.factor
+rm(big.cost.dist)
 # and make all that are beyond maximum considered distance NA. the efficiecny hack emplyed here (doing cost.distance by hexes buffered by max considered distance) will have calculated for some it didnt need to.
 effective.distance [patch.euc.dists>constants$max.dispersal.considered] = NA
 print("cost distance done")
-
 
 
 # SAVE PATCH DATA ----
