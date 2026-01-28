@@ -31,22 +31,22 @@ leaflet.path = paste0(func.conect.path,
 # Focal_landscape$name = "Usk Catchment"
 
 ### Wye & Usk Catchments ----
-Focal_landscape = bind_rows(
-  st_read(paste0(gis.wd, "\\Data\\Landscapes\\Usk Catchments\\Usk Catchments.shp")) %>% st_transform( 27700) %>% st_as_sf(),
-  st_read(paste0(gis.wd, "\\Data\\Landscapes\\Wye_Catchment\\Wye_Catchment.shp")) %>% st_transform( 27700) %>% st_as_sf()
-) %>%
-  st_buffer(1) %>%  # to fix any topology issues
-  st_union() %>% st_as_sf()
-Focal_landscape$name = "Wye & Usk Catchments"
+# Focal_landscape = bind_rows(
+#   st_read(paste0(gis.wd, "\\Data\\Landscapes\\Usk Catchments\\Usk Catchments.shp")) %>% st_transform( 27700) %>% st_as_sf(),
+#   st_read(paste0(gis.wd, "\\Data\\Landscapes\\Wye_Catchment\\Wye_Catchment.shp")) %>% st_transform( 27700) %>% st_as_sf()
+# ) %>%
+#   st_buffer(1) %>%  # to fix any topology issues
+#   st_union() %>% st_as_sf()
+# Focal_landscape$name = "Wye & Usk Catchments"
 
 
 # Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\FCF local_authority_boundaries\\FCF_local_authority_boundaries.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
 # Focal_landscape$name = "Forth Climate Forest"
 
 # ### Northern Forest ----
-# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
-# Focal_landscape <- Focal_landscape[7,]
-# Focal_landscape$name = "Northern Forest"
+Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
+Focal_landscape <- Focal_landscape[7,]
+Focal_landscape$name = "Northern Forest"
 
 
 ### Example landscape in Northern Forest ----
@@ -66,7 +66,8 @@ awi.dir <- paste0(gis.wd, "\\Data\\ancient woodland\\original\\AWI_joined_v4.02.
 nwss.dir <- paste0(gis.wd, "\\Data\\NWSS\\Native_Woodland_Survey_of_Scotland.shp")
 
 ## Define year ----
-years.considered = c(2024, 2020) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
+ years.considered = c(2015, 2024) #
+# years.considered = c(2024, 2020) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years.considered = c( 2019) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years for which change is calculated, 
 ## must be in years.considered and length 2
@@ -160,3 +161,10 @@ important.output.cols <- c("hex.standardised.leastcost.eca",
   "lcm.ncells",
   "landnotcoastal.ncells")
 
+# plot configuration
+
+leaflet_config = list()
+leaflet_config$conect_fillOpacity = 0.5
+leaflet_config$conect.change_fillOpacity = 0.5
+leaflet_config$hexline_opacity = 0
+leaflet_config$hillshade_opacity = 0.4
