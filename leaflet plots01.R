@@ -20,7 +20,7 @@ load(paste0(func.conect.path,  "\\analysis outputs\\", Focal_landscape$name, "\\
 dir.create(leaflet.path)
 
 # DEFINE LANDSCAPE(S) and constants ----
-this.years = years.considered # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
+this.years = sort(years.considered) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 nice.names = this.tss
 
 # LEAFLET MAP of connectivity in each year and change ----
@@ -44,15 +44,16 @@ treescape.leaflet <- lapply(seq_along(this.tss), FUN = function(i) {
   #### yearly connectivity ----
   var.name = "hex.standardised.leastcost.eca" # small hex area scales for
   col.lim.var.name = "hex.leastcost.eca" # this solves issue where small portion-hexes with high cover where skewing colour scale. If they are high they get high colour, but dont mess with the scale
-  conective.years.considered = this.years[1:2]
+  conective.years.considered = range(this.years)
   var.landscapes.for.colscale = map(all.hexgrids, "name") == this.tss[i] & map(all.hexgrids, "year") %in% conective.years.considered # ID all grids in considered years for this landscape
   col.lim.var.same.landscape      = as.data.frame(bind_rows(map(all.hexgrids, "hexgrid")[var.landscapes.for.colscale ]))[,col.lim.var.name] # all of col.lim.variable from considered years in this landscape
   col.lim.weights.same.landscape  = as.data.frame(bind_rows(map(all.hexgrids, "hexgrid")[var.landscapes.for.colscale ]))[, "hex.ha"] # all weights from cells in the considered years in this landscape
   big.enough.to.consider = col.lim.weights.same.landscape> (max(col.lim.weights.same.landscape)*0.9) # only consider those with area > 50% land
-  colour.limits = c(0, find.lims(var = col.lim.var.same.landscape, quant.weights = col.lim.weights.same.landscape, 
+  colour.limits = c(0, find.lims(var = col.lim.var.same.landscape, # colour limits based on all years of landscape
+                                 quant.weights = col.lim.weights.same.landscape, 
                                  consider = big.enough.to.consider, quant.prob = 0.98, sd.mult = 3 ))
   # squish variable
-  connective.scale.vals = lapply(seq_along(conective.years.considered), FUN = function(ii) {
+  connective.truncated.vals = lapply(seq_along(conective.years.considered), FUN = function(ii) {
     temp = grid.year[[ii]] %>% as.data.frame() %>% select(all_of(var.name))
     temp[temp[,1]>colour.limits[2],] = colour.limits[2]
     temp[temp[,1]<colour.limits[1],] = colour.limits[1]
@@ -61,22 +62,22 @@ treescape.leaflet <- lapply(seq_along(this.tss), FUN = function(i) {
   # make pallete function
   connect.year.pal <- colorNumeric(
     palette = "viridis",
-    domain = unlist(connective.scale.vals) )
+    domain = unlist(connective.truncated.vals) )
   
   #### yearly permiability ---- 
   var.name = "mean.scaled.ecolog.cost.not.sea" # small hex area scales for
   col.lim.var.name = "mean.scaled.ecolog.cost.not.sea" # this solves issue where small portion-hexes with high cover where skewing colour scale. If they are high they get high colour, but dont mess with the scale
-  perm.years.considered = this.years[1]
+  perm.years.considered = max(this.years) # for simplicity sake, only concerned with most recent year
   var.landscapes.for.colscale = map(all.hexgrids, "name") == this.tss[i] & map(all.hexgrids, "year") %in% perm.years.considered
   col.lim.var.same.landscape      = as.data.frame(bind_rows(map(all.hexgrids, "hexgrid")[var.landscapes.for.colscale ]))[,col.lim.var.name] # all of col.lim.variable from considered years in this landscape
   col.lim.weights.same.landscape  = as.data.frame(bind_rows(map(all.hexgrids, "hexgrid")[var.landscapes.for.colscale ]))[, "hex.ha"] # all weights from cells in the considered years in this landscape
   big.enough.to.consider = col.lim.weights.same.landscape> (max(col.lim.weights.same.landscape)*0.9) # only consider those with area > 50% land
-  colour.limits = c(min(col.lim.var.same.landscape), # note this is not 0, 
+  colour.limits = c(0, # yeah it is >> min(col.lim.var.same.landscape, na.rm = T), # note this is not 0, 
                     find.lims(var = col.lim.var.same.landscape, quant.weights = col.lim.weights.same.landscape, 
                                  consider = big.enough.to.consider, quant.prob = 0.98, sd.mult = 3 ))
   
   # squish variable
-  perm.scale.vals = lapply(seq_along(perm.years.considered), FUN = function(ii) {
+  perm.truncated.vals = lapply(seq_along(perm.years.considered), FUN = function(ii) {
     temp = grid.year[[ii]] %>% as.data.frame() %>% select(var.name)%>%as.matrix() %>% c()
     temp[temp > colour.limits[2]] = colour.limits[2]
     temp[temp < colour.limits[1]] = colour.limits[1]
@@ -85,7 +86,7 @@ treescape.leaflet <- lapply(seq_along(this.tss), FUN = function(i) {
   # make pallete function
   perm.year.pal <- colorNumeric(
     palette = "inferno",
-    domain = unlist(perm.scale.vals), reverse = TRUE )
+    domain = unlist(perm.truncated.vals), reverse = TRUE )
 
   ###  change in connectivity ----
   #limits to squish colour ramp to
@@ -98,21 +99,21 @@ treescape.leaflet <- lapply(seq_along(this.tss), FUN = function(i) {
   temp.var = grid.change$hex.standardised.leastcost.eca 
   temp.var[temp.var < colour.limits[1]] = colour.limits[1]
   temp.var[temp.var > colour.limits[2]] = colour.limits[2]
-  grid.change$scale.vals = temp.var
+  grid.change$truncated.vals = temp.var
 
   # make palletes
   col.to.ramp = c(E.cols$connectiv.low, "#FFFFFF", E.cols$connectiv.high) # select colours for ramp
   cust.pallet = colour_ramp(col.to.ramp)
   pal.connect.change.continuous = colorNumeric(cust.pallet, # make continuous pallette for plot
-                                               domain = c(grid.change$scale.vals, colour.limits))
+                                               domain = c(grid.change$truncated.vals, colour.limits))
   ## pretty break pallete for legend
   ### breaks
-  mybins <- pretty_breaks(n = 6)(grid.change$scale.vals)
-  mybins[mybins %in% range(mybins)] = c(-Inf, Inf)
+  mybins <- pretty_breaks(n = 6)(grid.change$truncated.vals)
+  mybins[mybins %in% range(mybins)] = c(-Inf, Inf) # why?  
   ### create pallette& colours
-  pal.connect.change.bin <- colorBin( palette= cust.pallet, domain = grid.change$scale.vals, na.color="transparent", bins=mybins)
-  pal.connect.change.bin.rev <- colorBin( palette= cust.pallet, domain = grid.change$scale.vals, na.color="transparent", bins=mybins, reverse = T)
-  connect.change.bincols = pal.connect.change.bin.rev(seq(min(grid.change$scale.vals),max(grid.change$scale.vals), length = length(mybins)+10)) %>% unique()
+  pal.connect.change.bin <- colorBin( palette= cust.pallet, domain = grid.change$truncated.vals, na.color="transparent", bins=mybins)
+  pal.connect.change.bin.rev <- colorBin( palette= cust.pallet, domain = grid.change$truncated.vals, na.color="transparent", bins=mybins, reverse = T)
+  connect.change.bincols = pal.connect.change.bin.rev(seq(min(grid.change$truncated.vals),max(grid.change$truncated.vals), length = length(mybins)+10)) %>% unique()
   ### labels
   mybin.labs = rep("", length(mybins)-1)
   for (ii in 1: sum(mybins<0)){
@@ -125,9 +126,9 @@ treescape.leaflet <- lapply(seq_along(this.tss), FUN = function(i) {
     }
   }
   ## even break pallete for legend - alternative
-  even.breaks = seq(min(grid.change$scale.vals), max(grid.change$scale.vals), length = (length(mybins)+ (length(mybins)%%2 -1)))
+  even.breaks = seq(min(grid.change$truncated.vals), max(grid.change$truncated.vals), length = (length(mybins)+ (length(mybins)%%2 -1)))
   ### create pallette & colours
-  pal.connect.change.evenbreak <- colorBin( palette= cust.pallet, domain = grid.change$scale.vals, na.color="transparent", bins=length(even.breaks)+1)
+  pal.connect.change.evenbreak <- colorBin( palette= cust.pallet, domain = grid.change$truncated.vals, na.color="transparent", bins=length(even.breaks)+1)
   connect.change.even.cols = pal.connect.change.evenbreak(even.breaks ) 
   connect.change.even.cols[ceiling(length(even.breaks)/2)] = col.to.ramp[2] # fix middle colour to middle of diverging pallete
   # labels
@@ -168,60 +169,60 @@ treescape.leaflet <- lapply(seq_along(this.tss), FUN = function(i) {
     addProviderTiles(providers$CartoDB.Voyager) %>%
     ####### change over time ----
     addPolygons(data = grid.change , stroke = T, color = "grey" ,
-                fillColor =  ~pal.connect.change.continuous(grid.change$scale.vals), weight = 0.5, smoothFactor = 0.5,
-                opacity = 0.3, fillOpacity = 0.9, 
+                fillColor =  ~pal.connect.change.continuous(grid.change$truncated.vals), weight = 0.5, smoothFactor = 0.5,
+                opacity = leaflet_config$hexline_opacity, fillOpacity = leaflet_config$conect.change_fillOpacity, 
                 popup = html.conectivity.text.for.fig(grid.change, change = T), 
-                group = "Connectivity change 1990 to 2019") %>%
+                group = paste("Connectivity change", min(this.years),"to", max(this.years))) %>%
     addLegend(position = "bottomright", 
               colors = connect.change.even.cols %>% rev(), 
-              # values = seq(min(grid.change$scale.vals), max(grid.change$scale.vals), length = 2) %>% rev(),#grid.change$scale.vals,
+              # values = seq(min(grid.change$truncated.vals), max(grid.change$truncated.vals), length = 2) %>% rev(),#grid.change$truncated.vals,
               title = "Functional connectivity<br> change: &#916ECA (ha)",
               labels = even.break.lab ,
               labFormat = labelFormat(transform = function(x) sort(x, decreasing = F)),
               opacity = 1, 
-              group = paste0("Connectivity change ", this.years[2], " to ", this.years[1]),
-              className = paste0("info legend ", keep.only.letters(paste0("Connectivity change ", this.years[2], " to ", this.years[1])))) %>%
+              group = paste("Connectivity change", min(this.years),"to", max(this.years)),
+              className = paste0("info legend ", keep.only.letters(paste("Connectivity change", min(this.years),"to", max(this.years))))) %>%
     ##### yearly connectivity -----
-      ###### 2019 ----
-      addPolygons(data = grid.year[[1]] , stroke = F, color = "grey" ,
-                  fillColor =  ~connect.year.pal(connective.scale.vals[[1]]) , 
-                  weight = 0.5, smoothFactor = 0.5,
-                  opacity = 0.3, fillOpacity = 0.8, 
-                  popup = html.conectivity.text.for.fig(grid.year[[1]], this.year = conective.years.considered[1], change = F), 
-                  group = paste0("Functional connectivity ", conective.years.considered[1])) %>%
-      ###### 1990 ----
+      # ###### min year ----
+      # addPolygons(data = grid.year[[1]] , stroke = F, color = "grey" ,
+      #             fillColor =  ~connect.year.pal(connective.truncated.vals[[1]]) , # fill based on values for that year, which are truncated to colour limits from all years
+      #             weight = 0.5, smoothFactor = 0.5,
+      #             opacity = leaflet_config$hexline_opacity, fillOpacity = leaflet_config$conect_fillOpacity, 
+      #             popup = html.conectivity.text.for.fig(grid.year[[1]], this.year = min(conective.years.considered), change = F), # but popup shows actual values
+      #             group = paste0("Functional connectivity ", min(conective.years.considered))) %>%
+      ###### max year ----
     addPolygons(data = grid.year[[2]] , stroke = F, color = "grey" ,
-                fillColor =  ~connect.year.pal(connective.scale.vals[[2]]) , 
+                fillColor =  ~connect.year.pal(connective.truncated.vals[[2]]) , 
                 weight = 0.5, smoothFactor = 0.5,
-                opacity = 0.3, fillOpacity = 0.8, 
-                popup = html.conectivity.text.for.fig(grid.year[[2]], this.year = conective.years.considered[2], change = F), 
-                group = paste0("Functional connectivity ", conective.years.considered[2])) %>%
+                opacity = leaflet_config$hexline_opacity, fillOpacity = leaflet_config$conect_fillOpacity, 
+                popup = html.conectivity.text.for.fig(grid.year[[2]], this.year = max(conective.years.considered), change = F), 
+                group = paste0("Functional connectivity ", max(conective.years.considered))) %>%
       ###### shared connectivity legend ----
     addLegend(position = "bottomright", 
               pal = connect.year.pal,
-              values = connective.scale.vals[[1]] ,
+              values = unlist(connective.truncated.vals)  , # WARNING, THIS MIGHT HAVE CAUSED AN ISSUE! swtiched to unlist from just first year
               title = paste("Equivelent<br> Connected<br> Area (ha)"),
               opacity = 1, 
-              group = paste0("Functional connectivity ", conective.years.considered[1]),
+              group = paste0("Functional connectivity ", min(conective.years.considered)),
               className = paste0("info legend ", keep.only.letters(paste0("Functional connectivity ", conective.years.considered[1])))) %>%
       
     ##### yearly landscape dispersal cost ----
-    addPolygons(data = grid.year[[1]] , stroke = F, color = "grey" ,
-              fillColor =  ~perm.year.pal(perm.scale.vals[[1]]) , 
+    addPolygons(data = grid.year[[length(years.considered)]] , stroke = F, color = "grey" , # most rececnt year - watch this one!
+              fillColor =  ~perm.year.pal(perm.truncated.vals[[length(perm.years.considered)]]) , # only doing most recent year only year of permiability for simplicity
               weight = 0.5, smoothFactor = 0.5,
-              opacity = 0.3, fillOpacity = 0.8, 
-              popup = html.conectivity.text.for.fig(grid.year[[1]], this.year = perm.years.considered[1], change = F), 
-              group = paste0("Dispersal permiability ", perm.years.considered[1])) %>%
+              opacity = leaflet_config$hexline_opacity, fillOpacity = leaflet_config$conect_fillOpacity, 
+              popup = html.conectivity.text.for.fig(grid.year[[length(years.considered)]], this.year = max(perm.years.considered), change = F), 
+              group = paste0("Dispersal permiability ", max(perm.years.considered))) %>%
     addLegend(position = "bottomright", 
               pal = perm.year.pal,
-              values = perm.scale.vals[[1]] ,
-              title = paste(perm.years.considered[1] ,"<br>Mean dispersal cost"),
+              values = unlist(perm.truncated.vals) ,
+              title = paste(max(perm.years.considered) ,"<br>Mean dispersal cost"),
               opacity = 1, 
-              group = paste0("Dispersal permiability ", perm.years.considered[1]),
-              className = paste0("info legend ", keep.only.letters(paste0("Dispersal permiability ", perm.years.considered[1])))) %>%
+              group = paste0("Dispersal permiability ", max(perm.years.considered)),
+              className = paste0("info legend ", keep.only.letters(paste0("Dispersal permiability ", max(perm.years.considered))))) %>%
     ### leaflet options ----
-    addLayersControl(baseGroups = c( paste0("Functional connectivity ", conective.years.considered),
-                                     "Connectivity change 1990 to 2019",
+    addLayersControl(baseGroups = c( paste0("Functional connectivity ", conective.years.considered)[length(conective.years.considered)],
+                                     paste("Connectivity change", min(this.years),"to", max(this.years)),
                                      paste0("Dispersal permiability ", perm.years.considered), "Basemap"),
     options = layersControlOptions(collapsed = F)) %>% 
     addSearchOSM( options = searchOptions(position = "topleft", autoCollapse = TRUE, minLength = 2)) %>%
@@ -237,8 +238,22 @@ treescape.leaflet <- lapply(seq_along(this.tss), FUN = function(i) {
          this.on('baselayerchange', el => updateLegend());
       }"
     ) %>% 
-    addControl(rr, position = "bottomleft") 
-    
+    addControl(rr, position = "bottomleft")  %>%
+    addTiles(
+      urlTemplate = "https://services.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}",
+      group = "Hillshade",
+      options = tileOptions(opacity = leaflet_config$hillshade_opacity)
+    ) %>% 
+    htmlwidgets::onRender("
+    function(el, x) {
+      var panes = el.querySelectorAll('.leaflet-tile-pane img');
+      panes.forEach(function(img) {
+        if (img.src.includes('World_Hillshade')) {
+          img.style.filter = 'contrast(2040%) brightness(110%)';
+        }
+      });
+    }
+  ")
     
   # save ----
     saveWidget(leaflet.map, file=paste0(leaflet.path, "\\",this.tss[i] ,"leaflet.html"))
