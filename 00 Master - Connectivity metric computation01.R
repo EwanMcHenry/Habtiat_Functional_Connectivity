@@ -113,4 +113,5 @@ timetaken = timedone - timestart
 ###############################################################################
 
 source("01 Presenting stats, change and map plots01.R")
+source("leaflet plots01.R")
 
