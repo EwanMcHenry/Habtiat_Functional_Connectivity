@@ -24,13 +24,13 @@ values(hab.cost.lcm)[is.na(values(hab.cost.lcm))] = max(values(hab.cost.lcm),na.
 hab.cost.lcm.100mres.mean = aggregate(hab.cost.lcm, constants$cost.res, mean, na.rm = T) # 4 x 4 mean aggregation
 
 # mean cost traveling through "not sea" in landscape
-landscape.mean.scaled.ecolog.cost.not.sea = mean(values(hab.cost.lcm)[!(values(lcm.year_landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.year_landscape))])*constants$cost.res
-landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(lcm.year_landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.year_landscape))])*constants$cost.res
+landscape.mean.scaled.ecolog.cost.not.sea = mean(values(hab.cost.lcm)[!(values(lcm.year_landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.year_landscape))])*constants$cost.scale.factor
+landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(lcm.year_landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.year_landscape))])*constants$cost.scale.factor
 # mean costs of hexes "not sea" in land scape
 not.sea.cost = hab.cost.lcm
 values(not.sea.cost)[(values(lcm.year_landscape) %in% c(13, 15:19 )) | is.na(values(lcm.year_landscape))] = NA
-ts.hexgrid$mean.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "mean" )*constants$cost.res
-ts.hexgrid$median.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "median" )*constants$cost.res
+ts.hexgrid$mean.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "mean" )*constants$cost.scale.factor
+ts.hexgrid$median.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "median" )*constants$cost.scale.factor
 
 # euclidian distances between all patches ----
 patch.euc.dists <- as.matrix(dist(st_coordinates(bl.patch.hexid.centroids), diag = T))
@@ -95,7 +95,7 @@ for (hthhex in 1:length(unique(bl.patch.hexid.centroids$grid_id[bl.patch.hexid.c
 
 time.now - Sys.time()
 # rescale cost distance to actual effective distance (before costs scaled to be close to 1 for computational efficiency)
-effective.distance = big.cost.dist*constants$cost.res
+effective.distance = big.cost.dist*constants$cost.scale.factor
 # and make all that are beyond maximum considered distance NA. the efficiecny hack emplyed here (doing cost.distance by hexes buffered by max considered distance) will have calculated for some it didnt need to.
 effective.distance [patch.euc.dists>constants$max.dispersal.considered] = NA
 print("cost distance done")
