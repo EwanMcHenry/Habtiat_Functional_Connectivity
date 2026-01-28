@@ -63,7 +63,7 @@ for (this.year in years.considered) {
   landscape.metrics = data.frame(name = ts.andAll.lcm.names[length(ts.andAll.lcm.names)],
                                  year = this.year,
                                  leastcost.ECA =         sqrt(sum(bl.patch.hexid.centroids$leastcost.contrib.to[bl.patch.hexid.centroids$in.landscape == T])),
-                                 scaled.leastcost.ECA =  sqrt(sum(bl.patch.hexid.centroids$scaled.leastcost.contrib.to[bl.patch.hexid.centroids$in.landscape == T])),
+                                 # scaled.leastcost.ECA =  sqrt(sum(bl.patch.hexid.centroids$scaled.leastcost.contrib.to[bl.patch.hexid.centroids$in.landscape == T])),
                                  euclid.ECA = sqrt(sum(bl.patch.hexid.centroids$euclid.contrib.to[bl.patch.hexid.centroids$in.landscape == T])),
                                  n.clumps = length(unique(bl.patch.hexid.centroids$clumps[bl.patch.hexid.centroids$in.landscape == T])),
                                  tot.patch.ha = sum(bl.patch.hexid.centroids$subpatch.hex.ha [bl.patch.hexid.centroids$in.landscape == T]),
