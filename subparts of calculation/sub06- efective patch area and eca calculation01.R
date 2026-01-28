@@ -20,7 +20,7 @@ bl.patch.hexid.centroids$effective.ha =
 # patch contributions to ECA ----
 n.patch = dim(bl.patch.hexid.centroids)[1]
 least.cost.contrib.from.patch.hexid = matrix(NA, nrow = n.patch, ncol = n.patch ) 
-scaled.least.cost.contrib.from.patch.hexid = matrix(NA, nrow = n.patch, ncol = n.patch ) 
+# scaled.least.cost.contrib.from.patch.hexid = matrix(NA, nrow = n.patch, ncol = n.patch ) 
 euclid.contrib.from.patch.hexid = matrix(NA, nrow = n.patch, ncol = n.patch ) 
 
 # sensitive.least.cost.contrib.from.patch.hexid = matrix(NA, nrow = n.patch, ncol = n.patch ) 
@@ -30,7 +30,7 @@ euclid.contrib.from.patch.hexid = matrix(NA, nrow = n.patch, ncol = n.patch )
 print("ECA Calculations")
 for ( i in 1:n.patch){
   least.cost.contrib.from.patch.hexid[i,] =         bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha * effective.distance[,i])
-  scaled.least.cost.contrib.from.patch.hexid[i,] =  bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha * effective.distance[,i]* (1/landscape.mean.scaled.ecolog.cost.not.sea)) # scaled so that average cell has cost of 1
+  # scaled.least.cost.contrib.from.patch.hexid[i,] =  bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha * effective.distance[,i]* (1/landscape.mean.scaled.ecolog.cost.not.sea)) # scaled so that average cell has cost of 1
   euclid.contrib.from.patch.hexid[i,] = bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha * patch.euc.dists[,i])
   
   # sensitive.least.cost.contrib.from.patch.hexid[i,] = bl.patch.hexid.centroids$effective.ha [i] * bl.patch.hexid.centroids$effective.ha * exp(-constants$alpha.sensitive * effective.distance[,i])
@@ -42,7 +42,7 @@ for ( i in 1:n.patch){
 }
 # sum of all contributions to/from every patch
 bl.patch.hexid.centroids$leastcost.contrib.to = rowSums(least.cost.contrib.from.patch.hexid, na.rm = T)
-bl.patch.hexid.centroids$scaled.leastcost.contrib.to = rowSums(scaled.least.cost.contrib.from.patch.hexid, na.rm = T)
+# bl.patch.hexid.centroids$scaled.leastcost.contrib.to = rowSums(scaled.least.cost.contrib.from.patch.hexid, na.rm = T)
 bl.patch.hexid.centroids$euclid.contrib.to = rowSums(euclid.contrib.from.patch.hexid, na.rm = T)
 
 # bl.patch.hexid.centroids$sensitive.leastcost.contrib.to = rowSums(sensitive.least.cost.contrib.from.patch.hexid, na.rm = T)
