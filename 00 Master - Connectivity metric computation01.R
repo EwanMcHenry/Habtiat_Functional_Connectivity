@@ -25,6 +25,8 @@ source("subparts of calculation\\sub02.1 - curate patch_agnostic.R")
 this.ts.num = 1
 this.year = years.considered[1]
 this.ts.for.loop = this.tss[this.ts.num]
+
+# loop 1
 for(this.ts.num in 1: length(this.tss)){
   ## make folder for this focal landscape ----
   dir.create(paste0(func.conect.path, 
@@ -32,7 +34,8 @@ for(this.ts.num in 1: length(this.tss)){
   # load global data, uncourated
   load(paste0(func.conect.path, 
               "\\analysis outputs\\r_global_data_.RData"))  
-  
+  load(paste0(func.conect.path, 
+              "\\analysis outputs\\r_curated_global_data_.RData"))  
   # read subscript 03 - data curation ----
   ## make folder for this landscape's rdata
   ## curate costs and edge effects, scaling etc
