@@ -1,6 +1,7 @@
 ##------ Wed Aug 31 14:12:23 2022 ------##
 # functional connectivity metric dev
 # sub 01.2 - setting constants
+sf_use_s2(FALSE)
 
 
 # Note - also can config "Data\\hab costs and edge effects Eycott 2011.csv"
@@ -44,20 +45,24 @@ leaflet.path = paste0(func.conect.path,
 # Focal_landscape$name = "Forth Climate Forest"
 
 # ### Northern Forest ----
-Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
-Focal_landscape <- Focal_landscape[7,]
-Focal_landscape$name = "Northern Forest"
+# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
+# Focal_landscape <- Focal_landscape[7,]
+# Focal_landscape$name = "Northern Forest"
 
 
 ### Example landscape in Northern Forest ----
-# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
-# Focal_landscape <- Focal_landscape[7,]
-# Focal_landscape$name = "e.g. NF landscape"
-# # find center of landscape
-# landscape_centroid = st_centroid(Focal_landscape$geometry)
-# # cut out a 10x10 km square around the centroid and overwrite Focal_landscape
-# centroid.square = st_buffer(landscape_centroid, 7071) %>% st_bbox() %>% st_as_sfc() # 7071m is half the diagonal of a 10x10km square
-# Focal_landscape$geometry = st_intersection(Focal_landscape$geometry, centroid.square)
+Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% 
+  st_transform( 27700) %>% 
+  filter(name == "Northern Forest" ) %>%   
+  st_make_valid() %>%  # to fix any topology issues
+  summarise()
+Focal_landscape$name = "e.g. NF landscape"
+
+# find center of landscape
+landscape_centroid = st_centroid(Focal_landscape$geometry)
+# cut out a 10x10 km square around the centroid and overwrite Focal_landscape
+centroid.square = st_buffer(landscape_centroid, 7071) %>% st_bbox() %>% st_as_sfc() # 7071m is half the diagonal of a 10x10km square
+Focal_landscape$geometry = st_intersection(Focal_landscape$geometry, centroid.square)
 
 ## AWI directory ----
 awi.dir <- paste0(gis.wd, "\\Data\\ancient woodland\\original\\AWI_joined_v4.02.shp")
@@ -80,8 +85,8 @@ quantile_target = 0.7 # the 30% highest hex - a target for the conectivity metri
 # SET MODEL CONSTANTS ----
 constants <- list(
   # hex grid size  
-  hexdist.v = 1000,
-  hexdist.h = 1000,
+  hexdist.v = 2000,
+  hexdist.h = 2000,
   # - NOTE - hex size is smaller than max dispersal considered. Im happy with this, but if it is bigger it might cause problems later in cost dist calc subscript 05.. might not ... think about it
   
   ## patch identification ----
