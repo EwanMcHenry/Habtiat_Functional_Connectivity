@@ -3,31 +3,37 @@
 # script 02 - loading data
 
 # data ----
-# hab cost and edge etc
-countries = st_read(paste0(gis.wd, "\\Data\\administrative boundaries\\Countries\\R.5countries.simp100m.shp"))%>% st_transform( 27700) %>% arrange(name)
+
+irish_isles <- gisco_get_countries(
+  country = c("UK", "IE", "IM"),
+  resolution = "20"
+) %>%
+  st_transform(27700) %>%
+  summarise()
+#plot(st_geometry(irish_isles))
+
+countries <-gisco_get_nuts(
+  country = "UK",
+  nuts_level = 1,
+  resolution = "01"
+) %>%
+  st_transform(27700) %>%
+  mutate(
+    nation = case_when(
+      grepl("SCOTLAND", NAME_LATN) ~ "Scotland",
+      grepl("WALES", NAME_LATN) ~ "Wales",
+      grepl("NORTHERN IRELAND", NAME_LATN) ~ "Northern Ireland",
+      grepl("ENGLAND", NAME_LATN) ~ "England",
+      grepl("LONDON", NAME_LATN) ~ "England",
+      grepl("YORKSHIRE AND THE HUMBER", NAME_LATN) ~ "England",
+      TRUE ~ NAME_LATN
+    ))%>%
+  group_by(nation) %>%
+  summarise(geometry = st_union(geometry), .groups = "drop")
+#plot(st_geometry(countries))
+
 
 # full lcms ----
-## select years and corresponding index ----
-t_year <- min(years.considered)
-tplus1_year <- max(years.considered)
-
-t_idx <- which(lcm.directs$year == t_year)
-tplus1_idx <- which(lcm.directs$year == tplus1_year)
-
-## load rasters ----
-# Load GB rasters
-lcm_t.rast25.gb <- raster(lcm.directs$gb.25[t_idx])
-lcm_tplus1.rast25.gb <- raster(lcm.directs$gb.25[tplus1_idx])
-
-# Load NI rasters
-lcm_t.rast25.ni <- raster(lcm.directs$ni.25[t_idx])
-lcm_tplus1.rast25.ni <- raster(lcm.directs$ni.25[tplus1_idx])
-
-## replace 0 values with 13 for sea ----
-lcm_tplus1.rast25.gb[lcm_tplus1.rast25.gb == 0] = 13 
-lcm_tplus1.rast25.ni[lcm_tplus1.rast25.ni == 0] = 13 
-lcm_t.rast25.gb[lcm_t.rast25.gb == 0] = 13 
-lcm_t.rast25.ni[lcm_t.rast25.ni == 0] = 13 
 
 # woodland info -----
 nwss = st_read(nwss.dir) %>% st_transform( 27700)
@@ -35,12 +41,9 @@ nwss = st_read(nwss.dir) %>% st_transform( 27700)
 awi = st_read(awi.dir) %>% st_transform( 27700)
 
 ### save ----
-save(countries,
-     lcm_tplus1.rast25.gb,
-     lcm_t.rast25.gb,
-     lcm_tplus1.rast25.ni,
-     lcm_t.rast25.ni,
-     lcm_t.rast25.ni,
+save(irish_isles,
+     countries,
+     lcm,
      nwss,
      awi, 
      file = paste0(func.conect.path, 
