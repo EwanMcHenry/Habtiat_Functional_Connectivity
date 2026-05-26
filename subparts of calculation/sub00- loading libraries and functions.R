@@ -6,7 +6,7 @@
 library(tidyverse)
 library(sf) # for gis
 library(raster)
-library(rgdal)
+# library(rgdal) # replaced with stars
 library(units) # for set_units()
 library(stars)
 library(sp)
@@ -44,6 +44,23 @@ library(network)
 library(sna)
 library(ggnetwork)
 library(ggExtra)
+library(giscoR)
 
 library(U.utilities) # Ewan custom functions git_install("EwanMcHenry/U.utilities")
 
+# mask_lcm_landscape <- function(lcm, landscape, country) {
+#   
+#   lcm.r <- if (country == "Northern Ireland") lcm$ni else lcm$gb
+#   
+#   crs_use <- if (country == "Northern Ireland") 29903 else 27700
+#   
+#   ts.vect <- terra::vect(st_transform(landscape, crs_use))
+#   
+#   template <- terra::crop(terra::rast(lcm.r[[1]]), ts.vect)
+#   
+#   fast_mask <- function(r) {
+#     terra::mask(terra::crop(r, template), ts.vect)
+#   }
+#   
+#   lapply(lcm.r, fast_mask)
+# }
