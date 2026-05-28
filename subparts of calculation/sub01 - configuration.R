@@ -2,7 +2,7 @@
 # functional connectivity metric dev
 # sub 01.2 - setting constants
 sf_use_s2(FALSE)
-
+troubleshooting = T # saves outputs for troubleshooting
 
 # Note - also can config "Data\\hab costs and edge effects Eycott 2011.csv"
 
@@ -17,7 +17,7 @@ func.conect.path = paste0(gis.wd, "\\Connectivity\\Habtiat_Functional_Connectivi
 leaflet.path = paste0(func.conect.path, 
                       "\\analysis outputs\\.maps\\leaflet maps")
 
-## landscape directory - DEFINE focal LANDSCAPE(S) ----
+# landscape directory - DEFINE focal LANDSCAPE(S) ----
 # landscape must be a single polygon... obviously, st_union is to make sure.
 # Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
 # Focal_landscape <- Focal_landscape[10,]
@@ -70,7 +70,10 @@ awi.dir <- paste0(gis.wd, "\\Data\\ancient woodland\\original\\AWI_joined_v4.02.
 ## NWSS directory ----
 nwss.dir <- paste0(gis.wd, "\\Data\\NWSS\\Native_Woodland_Survey_of_Scotland.shp")
 
-## Define year ----
+## roads directory ----
+roads.dir <- paste0(gis.wd, "\\Data\\Roads\\UK_roads_major.gpkg")
+
+# Define year ----
  years.considered = c(2015, 2024) #
 # years.considered = c(2024, 2020) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years.considered = c( 2019) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
@@ -79,6 +82,7 @@ nwss.dir <- paste0(gis.wd, "\\Data\\NWSS\\Native_Woodland_Survey_of_Scotland.shp
 change_years <- sort(years.considered) 
 
 # Indicators ----
+# high level metric scores
 # target quantile to maximise
 quantile_target = 0.7 # the 30% highest hex - a target for the conectivity metric to be maximised, spreading out naturerecovery
 
@@ -88,9 +92,12 @@ constants <- list(
   hexdist.v = 2000,
   hexdist.h = 2000,
   # - NOTE - hex size is smaller than max dispersal considered. Im happy with this, but if it is bigger it might cause problems later in cost dist calc subscript 05.. might not ... think about it
+  lcm.res = "25", # resolution of lcm data to use, must be 25 or 10 
+  
   
   ## patch identification ----
   focal.hab.num.lcm = 1, # 1 is broadleaf
+  alt.hab.scot.nwss = 2, # if in scotland, conifer with >50% native canopy is also focal habitat, this is the lcm code for conifer= 2
   # patch clumping buffer -   # often single real life "patch" might be split by 1-2 cells in teh data, this is the distance to join such split-patches into one
   buffer.for.patchid = 25, # distance to buffer around LCM patchest to define patch ID, this is 1/2 the max distance separating clumps within the same patch
 
