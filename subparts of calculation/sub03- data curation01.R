@@ -48,19 +48,6 @@ tsbuff.hexgrid <- st_transform(tsbuff.hexgrid, crs_use)
 ts.hexgrid <- st_transform(ts.hexgrid, crs_use)
 
 
-### select and mask lcm ----
-## select years and corresponding index ----
-lcm <- load_lcm(
-  lcm.directs = lcm.directs,
-  years = years.considered,
-  resolution = "25"
-)
-
-lcm.landscape <- mask_lcm_landscape(
-  lcm = lcm,
-  landscape = ts.buff,
-  country = this.country
-)
 
 ### select awi ----
 awi.landscape <- st_intersection(awi, ts.buff) %>% 
@@ -87,19 +74,27 @@ if(this.country == "Scotland"){
 # nwss.landscape = tsbuff.nwss.raster
 # 
 
+### select roads ----
+roads.landscape <- st_intersection(roads_uk_major, ts.buff) %>% 
+  st_make_valid() 
+roads.landscape <- roads.landscape %>%
+  st_buffer(dist = .$buffer_size) %>% 
+  st_union() %>% st_make_valid() %>% st_cast("POLYGON") #%>% st_simplify(preserveTopology = TRUE, dTolerance = 5) # buffer roads by width, union to avoid overlaps, simplify to reduce complexity
+
+# st_write(roads.landscape,
+#          paste0(gis.wd, "\\Data\\Roads\\road_widths_sample01.gpkg"), delete_dsn = TRUE)
+
 
 ### save ----
 save(awi.landscape, 
      nwss.landscape,
+     roads.landscape,
      
      tsbuff.hexgrid,
      ts.hexgrid,
      this.ts,
      
      this.country,
-     
-     lcm.landscape,
-     
      
      # tsbuff.awi, 
      

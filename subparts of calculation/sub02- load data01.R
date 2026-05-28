@@ -40,8 +40,42 @@ nwss = st_read(nwss.dir) %>% st_transform( 27700)
 
 awi = st_read(awi.dir) %>% st_transform( 27700)
 
+# big roads data ----
+
+# roads_uk_major <- oe_get(
+#   place = "United Kingdom",
+#   layer = "lines",
+#   query = "
+#   SELECT highway, geometry
+#   FROM lines
+#   WHERE highway IN (
+#     'motorway',
+#     'trunk',
+#     'primary'
+#   )
+#   "
+# )
+# st_write(
+#   roads_uk_major,
+#   roads.dir,
+#   delete_dsn = TRUE
+# )
+
+#source(paste0(func.conect.path, "\\code\\subparts of calculation\\whats up with roads.R"))
+
+roads_uk_major <- st_read(roads.dir) %>% st_transform(27700) %>% 
+  mutate(buffer_size = case_when(
+    highway == "motorway" ~ 9.08,
+    highway == "trunk" ~ 5.70,
+    highway == "primary" ~ 6.82,
+    TRUE ~ NA_real_
+  )) 
+
+
+
 ### save ----
-save(irish_isles,
+save(roads_uk_major,
+     irish_isles,
      countries,
      lcm,
      nwss,

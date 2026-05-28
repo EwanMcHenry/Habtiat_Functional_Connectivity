@@ -45,6 +45,7 @@ library(sna)
 library(ggnetwork)
 library(ggExtra)
 library(giscoR)
+library(osmextract) # for roads
 
 library(U.utilities) # Ewan custom functions git_install("EwanMcHenry/U.utilities")
 

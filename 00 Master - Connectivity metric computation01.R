@@ -46,16 +46,15 @@ for(this.ts.num in 1: length(this.tss)){
   source(paste0(sub.code.path, "\\sub03- data curation01.R"))
   
   for(this.year in years.considered){
+    ## load curated data ----
+    load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData"))
+    
+    source(paste0(sub.code.path, "\\sub03.01 - lcm data curation01.R"))
     
     # folder for this year for this landscape
     dir.create(paste0(func.conect.path, 
                       "\\analysis outputs\\", this.tss[this.ts.num],"\\", this.year))
     
-
-
-## load curated data ----
-load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData"))
-
 # read subscript 04 - defining patch attributes ----
 ## define patches - Broadleaf (or conifer in >50% native NWSS) cells contiguous or within small buffer (buffer.for.patchid x 2) 
 ### polygonise and intersect with grid
