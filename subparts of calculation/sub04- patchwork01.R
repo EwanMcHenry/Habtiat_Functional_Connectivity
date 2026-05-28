@@ -12,24 +12,50 @@
 ## patch-grid centroids
 
 # PATCH WORK ----
-lcm.year_landscape <- lcm.landscape[[which(years.considered == this.year)]]$raster #lcm19.rast25
 
 ## ID patches ----
 ### based on nehbouring clumps ---- 
-bl.lcm = lcm.year_landscape#eg.lcm19.rast25 
-bl.lcm[lcm.year_landscape != constants$focal.hab.num.lcm] = NA
-bl.lcm[lcm.year_landscape == constants$focal.hab.num.lcm] = 1
+bl.landscape = lcm.landscape#eg.lcm19.rast25 
+bl.landscape[lcm.landscape != constants$focal.hab.num.lcm] = NA
+bl.landscape[lcm.landscape == constants$focal.hab.num.lcm] = 1
 
-nobl.lcm = lcm.year_landscape 
-nobl.lcm[lcm.year_landscape == constants$focal.hab.num.lcm] = NA
+nobl.landscape = lcm.landscape 
+nobl.landscape[lcm.landscape == constants$focal.hab.num.lcm] = NA
 
-if(this.country == "Scotland" & constants$focal.hab.num.lcm %in% 1:2){ # if scotland conifer withini native woodland (NWSS>50%) == patch  
-  values(bl.lcm)[values(lcm.year_landscape) == 2 & values(nwss.landscape) == 1] = constants$focal.hab.num.lcm # conifer is focal habitat in scotland
-  values(lcm.year_landscape)[values(lcm.year_landscape) == 2 & values(nwss.landscape) == 1] = constants$focal.hab.num.lcm
+if(this.country == "Scotland" & constants$focal.hab.num.lcm %in% 1:2){ # if scotland and focal habitat is broadleaf or conifer, 
+  # include conifer within native woodland (NWSS>50%) == patch  
+  values(bl.landscape)[values(lcm.landscape) == constants$alt.hab.scot.nwss & values(nwss.landscape) == 1] = constants$focal.hab.num.lcm # conifer is focal habitat in scotland
+  values(lcm.landscape)[values(lcm.landscape) == constants$alt.hab.scot.nwss & values(nwss.landscape) == 1] = constants$focal.hab.num.lcm
+}
+# write  raster
+if(troubleshooting == T){
+  writeRaster(bl.landscape, 
+            paste0(func.conect.path, 
+                   "\\troubleshooting_saves\\bl.landscape.tif"), overwrite = TRUE)
 }
 
-bl.buff <- buffr (bl.lcm, distance = constants$buffer.for.patchid, units = "geographic", target_value = 1) # buffer neighbouring patches
-bl.patch.id <- bl.buff %>%  clump() %>% mask(.,bl.lcm)# patch ids to buffered clumps, then remove buffered area so patch ID = clump ID
+
+# identifying patches ----
+# first buffer to join patches that are super close
+bl.buff <- buffr (bl.landscape, distance = constants$buffer.for.patchid, units = "geographic", target_value = 1) # buffer neighbouring patches
+if(troubleshooting == T){
+  writeRaster(bl.buff, 
+            paste0(func.conect.path, 
+       "\\troubleshooting_saves\\bl.buff.tif"), overwrite = TRUE)
+}
+
+# cut through with any intensive landuse types
+bl.buff[ lcm.landscape %in% dispers.costs$hab.num[dispers.costs$semi.natural==F]] = NA
+if(troubleshooting == T){
+  writeRaster(bl.buff, 
+            paste0(func.conect.path, 
+                   "\\troubleshooting_saves\\bl.buff.cut.tif"), overwrite = TRUE)
+}
+
+bl.patch.id <- bl.buff %>% 
+  terra::patches(directions = 8) %>% 
+  terra::mask(bl.landscape)
+
 
 ### subpatches polygonise and split by grid cell ----
 # allows reporting on that scale
@@ -100,7 +126,7 @@ bl.patch.id.poly.hexid$awi.subpatch.hex.ha = full_join(bl.patch.id.poly.hexid, a
 ### hostile edge polygon ----
 ### polygonise lcm without woodland and join edge info
 
-  lcm.poly = stars::st_as_stars(lcm.year_landscape) %>% 
+  lcm.poly = stars::st_as_stars(lcm.landscape) %>% 
     st_as_sf(as_points = FALSE, merge = T, connect8 = T ) %>% #group_by(layer) %>% summarize(geometry = st_union(geometry)) %>%  st_make_valid() %>%  st_cast("MULTIPOLYGON") %>%   st_cast("POLYGON") %>% # to make work for NI -- overcoming some error to do with projection triggered by st_as_sf(merge=T)
     sf::as_Spatial() %>% 
     rgeos::gBuffer( byid = TRUE, width = 0) %>% st_as_sf()%>% 
@@ -158,8 +184,8 @@ bl.patch.hexid.centroids.sp = as( bl.patch.hexid.centroids , Class = "Spatial")
 
 
 # SAVE PATCH DATA ----
-save(lcm.year_landscape,
-     bl.lcm,
+save(lcm.landscape,
+     bl.landscape,
      bl.patch.hexid.centroids,
      bl.patch.hexid.centroids.sp,
      bl.patch.id.poly.hexid,
@@ -174,6 +200,7 @@ if(grepl("Illustrative", this.tss[this.ts.num]) ){
        awi.edge,
        awi.landscape,
        edge,
+       nobl.landscape,
        file = 
          paste0(func.conect.path, "\\analysis outputs\\", 
                 this.tss[this.ts.num], "\\", this.year, "\\edge_awi.polys.RData")
@@ -182,12 +209,12 @@ if(grepl("Illustrative", this.tss[this.ts.num]) ){
   }
 
 rm(lcm.landscape,
-   bl.lcm,
+   bl.landscape,
    awi.bl.patch.hexid,
    awi.edge, awi.landscape, tsbuff.awi, awiAREA.subpatch.hexid, 
-   bl.buff, bl.lcm, 
+   bl.buff,  
    edge, edge.awi.subpatch.hexid, edge.subpatch.hexid, patch.edge,
    lcm.poly, lcm.poly.no.patch, 
-   nobl.lcm)
+   nobl.landscape)
 gc()
 print("Patch definition (script04) done")
