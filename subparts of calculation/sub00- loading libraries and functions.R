@@ -65,3 +65,23 @@ library(U.utilities) # Ewan custom functions git_install("EwanMcHenry/U.utilitie
 #   
 #   lapply(lcm.r, fast_mask)
 # }
+
+
+trouble_plot <- function(x,name) {
+  if(troubleshooting == T){
+    #plot raster
+    if(class(x) == "SpatRaster"){
+      writeRaster(x, 
+                  paste0(func.conect.path, 
+                         "\\troubleshooting_saves\\", name, ".tif"), overwrite = TRUE)
+    }else if(class(x) == "sf"){
+      st_write(x, 
+               paste0(func.conect.path, 
+                      "\\troubleshooting_saves\\", name, ".gpkg"), delete_dsn = TRUE)
+    } else if(class(x) == "data.frame"){
+      write.csv(x, 
+                paste0(func.conect.path, 
+                       "\\troubleshooting_saves\\", name, ".csv"), row.names = FALSE)
+    }
+  }
+}
