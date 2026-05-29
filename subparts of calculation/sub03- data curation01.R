@@ -56,10 +56,10 @@ awi.landscape <- st_intersection(awi, ts.buff) %>%
 ### select nwss with more than 50% native canopy and rasterise with ts ----
 
 if(this.country == "Scotland"){
-  nwss.landscape <- st_intersection(nwss[nwss$NATIVE_PCT>=50,] %>% st_cast("POLYGON"), ts.buff) %>% 
+  nwss.native.conifer.landscape <- st_intersection(nwss[nwss$NATIVE_PCT>=50,] %>% st_cast("POLYGON"), ts.buff) %>% 
     st_make_valid() %>%  st_cast("MULTIPOLYGON") %>% 
     st_cast("POLYGON")
-} else{ nwss.landscape = NA}
+} else{ nwss.native.conifer.landscape = NA}
 
 # ### rasterise layers with same config as lcm
 # tsbuff.rast = fasterize(ts.buff, tsbuff.lcm_tplus1.rast25)
@@ -70,7 +70,7 @@ if(this.country == "Scotland"){
 # } else{ tsbuff.nwss.raster = NA}
 # 
 # awi.landscape = tsbuff.awi#eg.awi
-# nwss.landscape = tsbuff.nwss.raster
+# nwss.native.conifer.landscape = tsbuff.nwss.raster
 # 
 
 ### select roads ----
@@ -92,14 +92,14 @@ if(troubleshooting ==T){
   st_write(roads.landscape, paste0(func.conect.path, "\\troubleshooting_saves\\roads_landscape.gpkg"), delete_dsn = TRUE)
   
   if(this.country == "Scotland"){
-    st_write(nwss.landscape, paste0(func.conect.path, "\\troubleshooting_saves\\nwss_landscape.gpkg"), delete_dsn = TRUE)
+    st_write(nwss.native.conifer.landscape, paste0(func.conect.path, "\\troubleshooting_saves\\nwss_landscape.gpkg"), delete_dsn = TRUE)
   }
   
 }
 
 ### save ----
 save(awi.landscape, 
-     nwss.landscape,
+     nwss.native.conifer.landscape,
      roads.landscape,
      
      tsbuff.hexgrid,
@@ -133,7 +133,7 @@ rm(countries,
    lcm_tplus1.rast25.gb,
    lcm_t.rast25.ni,
    lcm_t.rast25.gb,awi.landscape, 
-     nwss.landscape,
+     nwss.native.conifer.landscape,
      
      tsbuff.hexgrid,
      ts.hexgrid,
