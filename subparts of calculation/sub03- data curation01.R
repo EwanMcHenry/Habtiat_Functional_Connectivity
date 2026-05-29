@@ -48,7 +48,6 @@ tsbuff.hexgrid <- st_transform(tsbuff.hexgrid, crs_use)
 ts.hexgrid <- st_transform(ts.hexgrid, crs_use)
 
 
-
 ### select awi ----
 awi.landscape <- st_intersection(awi, ts.buff) %>% 
   st_make_valid() %>%  st_cast("MULTIPOLYGON") %>% 
@@ -81,9 +80,22 @@ roads.landscape <- roads.landscape %>%
   st_buffer(dist = .$buffer_size) %>% 
   st_union() %>% st_make_valid() %>% st_cast("POLYGON") #%>% st_simplify(preserveTopology = TRUE, dTolerance = 5) # buffer roads by width, union to avoid overlaps, simplify to reduce complexity
 
-# st_write(roads.landscape,
-#          paste0(gis.wd, "\\Data\\Roads\\road_widths_sample01.gpkg"), delete_dsn = TRUE)
 
+# troubleshooting saves ----
+if(troubleshooting ==T){
+  st_write(tsbuff.hexgrid, 
+           paste0(func.conect.path, "\\troubleshooting_saves\\tsbuff_hexgrid.gpkg"), delete_dsn = TRUE)
+  st_write(ts.hexgrid, paste0(func.conect.path, "\\troubleshooting_saves\\ts_hexgrid.gpkg"), delete_dsn = TRUE)
+  st_write(this.ts, paste0(func.conect.path, "\\troubleshooting_saves\\ts.gpkg"), delete_dsn = TRUE)
+  st_write(ts.buff, paste0(func.conect.path, "\\troubleshooting_saves\\tsbuff.gpkg"), delete_dsn = TRUE)
+  st_write(awi.landscape, paste0(func.conect.path, "\\troubleshooting_saves\\awi_landscape.gpkg"), delete_dsn = TRUE)
+  st_write(roads.landscape, paste0(func.conect.path, "\\troubleshooting_saves\\roads_landscape.gpkg"), delete_dsn = TRUE)
+  
+  if(this.country == "Scotland"){
+    st_write(nwss.landscape, paste0(func.conect.path, "\\troubleshooting_saves\\nwss_landscape.gpkg"), delete_dsn = TRUE)
+  }
+  
+}
 
 ### save ----
 save(awi.landscape, 
