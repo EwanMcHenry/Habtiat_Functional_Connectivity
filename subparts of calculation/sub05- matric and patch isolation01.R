@@ -1,54 +1,87 @@
 # Ewan McHenry
 ##------ Fri Feb 25 09:19:50 2022 ------##
 # functional connectivity metric dev
+
 # script 05 - matrix and patch isolation
+
+
+# ## load curated data ----
+load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData"))
+## LOAD PATCH DATA ----
+load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\r_funcconnect_patchwork.RData"))
+
+r_stack <- terra::rast(
+  paste0(func.conect.path, "\\analysis outputs\\", 
+         this.tss[this.ts.num], "\\", this.year, "\\r_stack.tif"))
+
 
 # THE MATRIX ----
 
-# Ncells of landtypes in each hex
-
-ts.hexgrid$lcm.ncells = exact_extract(lcm.year_landscape, ts.hexgrid, "count" )
-ts.hexgrid$bl.ncells = exact_extract(bl.lcm, ts.hexgrid, "count" )
-landnotcoastal.cells = lcm.year_landscape
-values(landnotcoastal.cells) = 0
-values(landnotcoastal.cells)[values(lcm.year_landscape) %in% c(1:12,14,20:21 )] = 1
-ts.hexgrid$landnotcoastal.ncells = exact_extract(landnotcoastal.cells, ts.hexgrid, "sum" )
-rm(landnotcoastal.cells)
-
-# make cost layer 
-hab.cost.lcm = lcm.year_landscape  
-values(hab.cost.lcm) = dispers.costs$scaled.ecolog.cost[values(lcm.year_landscape)]
+# make cost layer ----
+hab.cost.lcm = r_stack$lcm  
+values(hab.cost.lcm) = dispers.costs$scaled.ecolog.cost[values(r_stack$lcm)]
+trouble_plot(hab.cost.lcm, "habitat cost layer")
 #replace gaps with high-cost landscape - these are normally sea, but can be beyond edge of landscape, this shouldnt be a problem, becasue landscape is buffered
-values(hab.cost.lcm)[is.na(values(hab.cost.lcm))] = max(values(hab.cost.lcm),na.rm=T)
-# aggragate cost raster by mean to reduce resolution and computational power ----
-hab.cost.lcm.100mres.mean = aggregate(hab.cost.lcm, constants$cost.res, mean, na.rm = T) # 4 x 4 mean aggregation
+values(hab.cost.lcm)[is.na(values(hab.cost.lcm))] = max(dispers.costs$scaled.ecolog.cost[values(r_stack$lcm)],na.rm=T)
 
+# aggragate cost raster by mean to reduce resolution and computational power ----
+hab.cost.agg.rast = aggregate(hab.cost.lcm, constants$cost_agg_n, mean, na.rm = T) # 4 x 4 mean aggregation
+
+# LANDSCAPE cost INFO ----
+
+# Mean landscape cost
 # mean cost traveling through "not sea" in landscape
-landscape.mean.scaled.ecolog.cost.not.sea = mean(values(hab.cost.lcm)[!(values(lcm.year_landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.year_landscape))])*constants$cost.scale.factor
-landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(lcm.year_landscape) %in% c(13, 15:19 )) & !is.na(values(lcm.year_landscape))])*constants$cost.scale.factor
+landscape.mean.ecolog.cost.not.sea = mean(values(hab.cost.lcm)[!(values(r_stack$lcm  ) %in% coastal_water_lcm) & !is.na(values(r_stack$lcm  ))])*constants$cost.scale.factor
+# landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(r_stack$lcm) %in%coastal_water_lcm) & !is.na(values(r_stack$lcm))])*constants$cost.scale.factor
+
+# mean hex cost
 # mean costs of hexes "not sea" in land scape
 not.sea.cost = hab.cost.lcm
-values(not.sea.cost)[(values(lcm.year_landscape) %in% c(13, 15:19 )) | is.na(values(lcm.year_landscape))] = NA
-ts.hexgrid$mean.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "mean" )*constants$cost.scale.factor
-ts.hexgrid$median.scaled.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "median" )*constants$cost.scale.factor
+values(not.sea.cost)[(values(r_stack$lcm) %in% coastal_water_lcm) | is.na(values(r_stack$lcm))] = NA
+ts.hexgrid$mean.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "mean" )*constants$cost.scale.factor
+# ts.hexgrid$median.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "median" )*constants$cost.scale.factor
+
 
 # euclidian distances between all patches ----
-patch.euc.dists <- as.matrix(dist(st_coordinates(bl.patch.hexid.centroids), diag = T))
+patch.euc.dists <- as.matrix(dist(st_coordinates(patch_centroid_info), diag = T))
 
 #warning that indexing might not work
-if(sum(bl.patch.hexid.centroids$hex_splitpatch_ID !=1:length(bl.patch.hexid.centroids$hex_splitpatch_ID))>0){
+if(sum(patch_centroid_info$row_id !=1:length(patch_centroid_info$uid))>0){
   print("HEY, LOOK OUT!\n patch ID doesnt equal row number -- this will casue problems in allocating cost distances!! ")
 }
 
 time.now = Sys.time()
-big.cost.dist = matrix (NA, nrow = dim(bl.patch.hexid.centroids)[1], ncol = dim(bl.patch.hexid.centroids)[1])
 print("cost distance calculation")
-for (hthhex in 1:length(unique(bl.patch.hexid.centroids$grid_id[bl.patch.hexid.centroids$in.landscape==T]))){
+
+
+big.cost.dist = matrix (NA, nrow = dim(patch_centroid_info[patch_centroid_info$focal_landscape==1,])[1], ncol = dim(patch_centroid_info)[1]) # dataframe to save cost distances
+patches <- patch_centroid_info %>% select(patches, grid_id, focal_landscape )
+
+# WORKING HERE
+
+WORKING HERE
+# build candidate pairs
+nn <- sf::st_is_within_distance(
+  patches, # no dont[patch_centroid_info$focal_landscape==1,], # only interested in within landscape connections
+  patches,
+  dist = constants$max.dispersal.considered # cutoff distance beyond which pair not considered
+)
+edges <- data.frame(
+  from = rep(seq_along(nn), lengths(nn)),
+  to   = unlist(nn)) %>%
+  dplyr::filter(from < to)
+
+pairs <- data.frame(
+  from = rep(seq_along(nn), lengths(nn)),
+  to   = unlist(nn)
+)
+
+for (hthhex in 1:length(unique(patch_centroid_info$grid_id[patch_centroid_info$focal_landscape ==1]))){
   # for each unique hexgrid ID with patches in the lansdacep 
-  this.grid_id = unique(bl.patch.hexid.centroids$grid_id[bl.patch.hexid.centroids$in.landscape==T])[hthhex]
+  this.grid_id = unique(patch_centroid_info$grid_id[patch_centroid_info$in.landscape==T])[hthhex]
   # focal patches (dispersal sources) in this grid cell, also within the landscape
-  grid.focal_centroids = bl.patch.hexid.centroids[bl.patch.hexid.centroids$grid_id == this.grid_id &
-                                                    bl.patch.hexid.centroids$in.landscape == T,]
+  grid.focal_centroids = patch_centroid_info[patch_centroid_info$grid_id == this.grid_id &
+                                                    patch_centroid_info$in.landscape == T,]
   
   # if there are any patches in this cell, in this landscape ()
 #  if(length(grid.focal_centroids)>0){ # ive taken this out, I dont think it nessessary any more now loop only considering focal patches that are in landscape
@@ -73,13 +106,13 @@ for (hthhex in 1:length(unique(bl.patch.hexid.centroids$grid_id[bl.patch.hexid.c
     # id patch centroids within buffered and focal hex as sp objects -- needed for fast  costdistance()
     grid.focal_centroids.sp = as( grid.focal_centroids %>% st_transform( 27700) , Class = "Spatial")
     
-    grid.buffered_centroids = st_intersection(bl.patch.hexid.centroids, this.grid_buffered %>% st_transform( 27700))
+    grid.buffered_centroids = st_intersection(patch_centroid_info, this.grid_buffered %>% st_transform( 27700))
     grid.buffered_centroids.sp = as( grid.buffered_centroids , Class = "Spatial")
     
     # mask cost layer to buffered hex
-    gridbuff_cost <- crop(hab.cost.lcm.100mres.mean, this.grid_buffered ) %>%  
+    gridbuff_cost <- crop(hab.cost.agg.rast, this.grid_buffered ) %>%  
       fast_mask(., this.grid_buffered ) %>%  
-      projectRaster(., crs = crs(grid.buffered_centroids.sp), res = res(hab.cost.lcm.100mres.mean), method = "ngb" )
+      projectRaster(., crs = crs(grid.buffered_centroids.sp), res = res(hab.cost.agg.rast), method = "ngb" )
     #gridbuff_cost[is.na(gridbuff_cost)] = max(values(gridbuff_cost), na.rm = T)
     
     # transition matrix and correct for diagonal/ortho -- note scale = F, to get real cost distance measure, rather than scaled
@@ -109,7 +142,7 @@ save(effective.distance,
      landscape.median.scaled.ecolog.cost.not.sea,
      ts.hexgrid,
      patch.euc.dists,
-     bl.patch.hexid.centroids, 
+     patch_centroid_info, 
      file = 
      paste0(func.conect.path, 
             "\\analysis outputs\\", this.ts.for.loop[this.ts.num], "\\", this.year, "\\r_funcconnect_MatrixCostDists.RData")
