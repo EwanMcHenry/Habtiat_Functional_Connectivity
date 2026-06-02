@@ -101,29 +101,25 @@ if(troubleshooting ==T){
 save(awi.landscape, 
      nwss.native.conifer.landscape,
      roads.landscape,
-     
-     tsbuff.hexgrid,
+
+     file = paste0(func.conect.path, 
+                   "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated_data.awi_nwss_roads.RData")
+)
+
+save(tsbuff.hexgrid,
+     awi.landscape,
      ts.hexgrid,
      this.ts,
-     
      this.country,
-     
-     # tsbuff.awi, 
-     
-  #tsbuff.lcm_tplus1.rast25,
-     #tsbuff.lcm_t.rast25,
-     # tsbuff.lcm_tplus1.rast25.unpro, 
-     # tsbuff.lcm_t.rast25.unpro, 
-     #tsbuff.nwss,
-     # tsbuff.nwss.raster,
-     # tsbuff.rast,
-    # tsbuff.awi.raster,
+     roads.landscape,
+     countries,
      file = paste0(func.conect.path, 
                    "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData")
     )
 
 # save some space in RAM by removing some objects ----
-rm(countries,
+rm(roads.landscape, roads_uk_major,
+   countries,
    awi, lcm_tplus1.rast25.ni,hex.grid0, hex.grid, nwss, 
    tsbuff.nwss, 
    tsbuff.nwss.raster,
@@ -136,14 +132,14 @@ rm(countries,
      nwss.native.conifer.landscape,
      
      tsbuff.hexgrid,
-     ts.hexgrid,
-     this.ts,
-     
-     this.country,
-     
-     lcm.landscape
-     #, 
+   ts.hexgrid,
+   this.ts,
+   
+   this.country,
+   
+   lcm.landscape
+   #, 
    #tsbuff.lcm_tplus1.rast25.unpro, tsbuff.lcm_t.rast25.unpro
-   )
+)
 gc()
 print("Data curation (script03) done")
