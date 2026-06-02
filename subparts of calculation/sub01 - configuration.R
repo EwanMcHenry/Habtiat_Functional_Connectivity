@@ -115,7 +115,7 @@ constants <- list(
   focal.hab.cost.num = 1, # lcm code, 1 is broadleaf
   focalhab.cost = 0.05, # cost of moving through focal (bl woodland) habitat - given nominal amount to protect against imapct of super thin corridors
                 # could consider to be 1
-  cost.res = 4, # n cells to be mean-aggregated (vert and horiz) for dispersal cost. higher to reduce computing time
+  cost.res = 100, # size of cell to be mean-aggregated over in m (vert and horiz) for dispersal cost. higher to reduce computing time. must be multiple of lcm.res (e.g. 100 is 4 x 25)
   
   #landscape buffer
   # used in sub03 - 
@@ -123,7 +123,9 @@ constants <- list(
   landscape.buffer.simplification.tolerance = c(100, 1000) 
   
   )  
-  
+
+
+constants$cost_agg_n <- constants$cost.res/ as.numeric(constants$lcm.res)
 # define dispersal costs set ----
 dispers.costs = read.csv("Data\\hab costs and edge effects Eycott 2011.csv")  %>% 
   mutate(guy.cost = ifelse(guy.cost == 1000, 50, guy.cost)) %>% 
