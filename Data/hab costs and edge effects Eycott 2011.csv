@@ -20,4 +20,4 @@
 13,Saltmarsh,19,littoral.sediment,Coastal saltmarshes and saline reedbeds,0.05,17.26551301,20,20,50,T,F,
 21,Urban,20,Urban,"Constructed, industrial and other artificial habitats",0.2,75.5448961,25,5,5,F,T,
 20,Suburban,21,Urban,"Constructed, industrial and other artificial habitats",0.2,75.5448961,25,5,5,F,T,
-22,Road,22,,,0.07,75.5448961,,14.28571429,,F,T,added myself based on supralittoral rock and urban effects
+22,Road,22,,,0.07,75.5448961,,14.28571429,15.38,F,T,added myself based on supralittoral rock and urban effects
