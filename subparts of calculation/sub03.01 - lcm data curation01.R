@@ -23,11 +23,16 @@ roads.rast <- terra::rasterize(
 )
 
 lcm.landscape[roads.rast == 1] <- 22 # assign roads a unique value in lcm to be able to identify them later
+names(lcm.landscape) <- paste0("lcm")
+trouble_plot(lcm.landscape, "lcm_landscape_with_roads")
+
+
 
 # write roads raster
 # writeRaster(roads.rast, paste0(gis.wd, "\\Data\\Roads\\road_widths_sample.tif"), overwrite = TRUE)
 
-rm(lcm)
+rm(lcm,
+   roads.landscape, roads.rast)
 gc()
 
 
