@@ -67,21 +67,38 @@ library(U.utilities) # Ewan custom functions git_install("EwanMcHenry/U.utilitie
 # }
 
 
-trouble_plot <- function(x,name) {
-  if(troubleshooting == T){
-    #plot raster
-    if(class(x) == "SpatRaster"){
-      writeRaster(x, 
-                  paste0(func.conect.path, 
-                         "\\troubleshooting_saves\\", name, ".tif"), overwrite = TRUE)
-    }else if(class(x) == "sf"){
-      st_write(x, 
-               paste0(func.conect.path, 
-                      "\\troubleshooting_saves\\", name, ".gpkg"), delete_dsn = TRUE)
-    } else if(class(x) == "data.frame"){
-      write.csv(x, 
-                paste0(func.conect.path, 
-                       "\\troubleshooting_saves\\", name, ".csv"), row.names = FALSE)
+trouble_plot <- function(x, name) {
+  if (isTRUE(troubleshooting)) {
+    
+    out_path <- file.path(
+      func.conect.path,
+      "troubleshooting_saves"
+    )
+    
+    if (inherits(x, "SpatRaster")) {
+      
+      terra::writeRaster(
+        x,
+        file.path(out_path, paste0(name, ".tif")),
+        overwrite = TRUE
+      )
+      
+    } else if (inherits(x, "sf")) {
+      
+      sf::st_write(
+        x,
+        file.path(out_path, paste0(name, ".gpkg")),
+        delete_dsn = TRUE
+      )
+      
+    } else if (is.data.frame(x)) {
+      
+      write.csv(
+        x,
+        file.path(out_path, paste0(name, ".csv")),
+        row.names = FALSE
+      )
+      
     }
   }
 }
