@@ -46,14 +46,14 @@ for(this.ts.num in 1: length(this.tss)){
   source(paste0(sub.code.path, "\\sub03- data curation01.R"))
   
   for(this.year in years.considered){
+    dir.create(paste0(func.conect.path, 
+                      "\\analysis outputs\\", this.tss[this.ts.num],"\\", this.year))
+    
     ## load curated data ----
     load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData"))
-    
     source(paste0(sub.code.path, "\\sub03.01 - lcm data curation01.R"))
     
     # folder for this year for this landscape
-    dir.create(paste0(func.conect.path, 
-                      "\\analysis outputs\\", this.tss[this.ts.num],"\\", this.year))
     
 # read subscript 04 - defining patch attributes ----
 ## define patches - Broadleaf (or conifer in >50% native NWSS) cells contiguous or within small buffer (buffer.for.patchid x 2) 
@@ -72,11 +72,6 @@ source(paste0(sub.code.path, "\\sub04- patchwork01.R"))
 for(this.ts.for.loop in this.tss){#: length(this.tss)]){
   for(this.year in years.considered){
     this.ts.num = which(this.tss == this.ts.for.loop) # this bit should maybe automatically chosen in for loop in future
-    # ## load curated data ----
-    load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData"))
-    
-## LOAD PATCH DATA ----
-load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\r_funcconnect_patchwork.RData"))
 
 # read subscript 05 - dispersal cost between patches ----
 ## count ncells of within each hex of: broadleaf, land not coastal and all cells
