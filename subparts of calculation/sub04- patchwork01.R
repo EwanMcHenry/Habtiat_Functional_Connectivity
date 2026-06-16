@@ -176,8 +176,10 @@ cell_area <- prod(terra::res(bl.patch.id.rast))
 
 agg <- cells2 %>%
   dplyr::group_by(patches, grid_id, focal_landscape, class) %>%
-  dplyr::summarise(n = dplyr::n(), .groups = "drop") %>%
-  dplyr::mutate(area = n * cell_area)
+  dplyr::summarise(n = dplyr::n(), 
+                   .groups = "drop") %>%
+  dplyr::mutate(area = n * cell_area) %>%
+  dplyr::distinct(patches, grid_id, focal_landscape, class, .keep_all = TRUE)
 agg_wide <- agg %>%
   select(!n) %>%
   tidyr::pivot_wider(
@@ -202,7 +204,7 @@ patch_centroid_info <- patch_centroid_info %>%
   mutate(edge_tot = awi_edge + nonawi_edge,
          core_tot = awi_core + nonawi_core,
          patch_area = edge_tot + core_tot,
-         uid = paste0(patches, "_", grid_id),
+         uid = paste(patches, grid_id, focal_landscape, sep = "_"),
          row_id = 1:nrow(patch_centroid_info),)
 trouble_plot(patch_centroid_info, "patch_centroid_info_points")
 
