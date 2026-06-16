@@ -102,3 +102,27 @@ trouble_plot <- function(x, name) {
     }
   }
 }
+
+
+# calculate movement cost function ----
+
+compute_from_source <- function(i, edges, cost_raster, patches_sf) {
+
+from_patch <- patches_sf[i, ]
+
+targets <- edges$to[edges$from == i]
+
+if (length(targets) == 0) return(NULL)
+
+target_pts <- patches_sf[targets, ]
+
+acc <- terra::accCost(cost_raster, terra::vect(from_patch))
+
+vals <- terra::extract(acc, terra::vect(target_pts))[,2]
+
+data.frame(
+  from = i,
+  to   = targets,
+  lcd  = vals
+)
+}

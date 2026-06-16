@@ -23,7 +23,6 @@ values(hab.cost.lcm) = dispers.costs$scaled.ecolog.cost[values(r_stack$lcm)]
 trouble_plot(hab.cost.lcm, "habitat cost layer")
 #replace gaps with high-cost landscape - these are normally sea, but can be beyond edge of landscape, this shouldnt be a problem, becasue landscape is buffered
 values(hab.cost.lcm)[is.na(values(hab.cost.lcm))] = max(dispers.costs$scaled.ecolog.cost[values(r_stack$lcm)],na.rm=T)
-
 # aggragate cost raster by mean to reduce resolution and computational power ----
 hab.cost.agg.rast = aggregate(hab.cost.lcm, constants$cost_agg_n, mean, na.rm = T) # 4 x 4 mean aggregation
 
@@ -45,6 +44,8 @@ ts.hexgrid$mean.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "m
 # euclidian distances between all patches ----
 patch.euc.dists <- as.matrix(dist(st_coordinates(patch_centroid_info), diag = T))
 
+
+# cost distance between patches ----
 #warning that indexing might not work
 if(sum(patch_centroid_info$row_id !=1:length(patch_centroid_info$uid))>0){
   print("HEY, LOOK OUT!\n patch ID doesnt equal row number -- this will casue problems in allocating cost distances!! ")
@@ -57,24 +58,33 @@ print("cost distance calculation")
 big.cost.dist = matrix (NA, nrow = dim(patch_centroid_info[patch_centroid_info$focal_landscape==1,])[1], ncol = dim(patch_centroid_info)[1]) # dataframe to save cost distances
 patches <- patch_centroid_info %>% select(patches, grid_id, focal_landscape )
 
-# WORKING HERE
 
-WORKING HERE
-# build candidate pairs
+# build candidate pairs - global neighbourhood graph
 nn <- sf::st_is_within_distance(
-  patches, # no dont[patch_centroid_info$focal_landscape==1,], # only interested in within landscape connections
+  patches[patch_centroid_info$focal_landscape==1,], # only interested in within landscape connections - had taken this out before.. though not sure why
   patches,
   dist = constants$max.dispersal.considered # cutoff distance beyond which pair not considered
 )
+
 edges <- data.frame(
   from = rep(seq_along(nn), lengths(nn)),
   to   = unlist(nn)) %>%
   dplyr::filter(from < to)
 
+# attach coordinates to edges 
+coords <- sf::st_coordinates(patch_centroid_info)
+
+edges$x_from <- coords[edges$from, 1]
+edges$y_from <- coords[edges$from, 2]
+edges$x_to   <- coords[edges$to, 1]
+edges$y_to   <- coords[edges$to, 2]
+
+
 pairs <- data.frame(
   from = rep(seq_along(nn), lengths(nn)),
   to   = unlist(nn)
 )
+
 
 for (hthhex in 1:length(unique(patch_centroid_info$grid_id[patch_centroid_info$focal_landscape ==1]))){
   # for each unique hexgrid ID with patches in the lansdacep 
