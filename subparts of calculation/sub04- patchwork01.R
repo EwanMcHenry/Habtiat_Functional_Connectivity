@@ -204,6 +204,8 @@ patch_centroid_info <- patch_centroid_info %>%
   mutate(edge_tot = awi_edge + nonawi_edge,
          core_tot = awi_core + nonawi_core,
          patch_area = edge_tot + core_tot,
+         awi_tot = awi_edge + awi_core,
+         nonawi_tot = nonawi_edge + nonawi_core,
          uid = paste(patches, grid_id, focal_landscape, sep = "_"),
          row_id = 1:nrow(patch_centroid_info),)
 trouble_plot(patch_centroid_info, "patch_centroid_info_points")
@@ -250,13 +252,16 @@ lcm_summary <- cells %>%
     names_prefix = "lcm_",
     values_fill = 0
   )
-hex_summary <- hex_summary %>%
-  dplyr::left_join(lcm_summary, by = "grid_id")
+ts.hexgrid <- ts.hexgrid %>%
+  dplyr::left_join(hex_summary, by = "grid_id") %>%
+  dplyr::left_join(lcm_summary, by = "grid_id") %>% 
+  
 
 
 
 # SAVE PATCH DATA ----
-save(patch_centroid_info,
+save(ts.hexgrid,
+     patch_centroid_info,
      hex_summary,
      file = 
        paste0(func.conect.path, "\\analysis outputs\\", 
