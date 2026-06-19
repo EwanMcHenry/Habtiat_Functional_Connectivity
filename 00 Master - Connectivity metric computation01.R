@@ -44,10 +44,12 @@ for(this.ts.num in 1: length(this.tss)){
   ### lcm from 90 and 19
   ### awi
   source(paste0(sub.code.path, "\\sub03- data curation01.R"))
+  landscape_stats[[this.ts.num]] <- list(landscape = this.tss[this.ts.num])
   
   for(this.year in years.considered){
     dir.create(paste0(func.conect.path, 
                       "\\analysis outputs\\", this.tss[this.ts.num],"\\", this.year))
+    landscape_stats[[this.ts.num]]$year_stats <- list(year = this.year, landscape = this.tss[this.ts.num])
     
     ## load curated data ----
     load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData"))
@@ -82,9 +84,6 @@ for(this.ts.for.loop in this.tss){#: length(this.tss)]){
 ## least cost distance and rescale
 source(paste0(sub.code.path, "\\sub05- matric and patch isolation01.R"))
 
-## Load cost distance data ----
-load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\r_funcconnect_MatrixCostDists.RData")
-            )
 
 # read subscript 06 - effective area and eca calculation ----
 ## effective patch area, usign edge and awi area
