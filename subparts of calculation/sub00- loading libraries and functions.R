@@ -46,6 +46,16 @@ library(ggnetwork)
 library(ggExtra)
 library(giscoR)
 library(osmextract) # for roads
+library(future.apply) # for parallel processing of cost distance
+library(terra) # for raster processing
+library(progressr)
+handlers(global = TRUE)
+handlers("txtprogressbar")
+
+library(tidyterra)
+
+handlers(global = TRUE)
+handlers("txtprogressbar")
 
 library(U.utilities) # Ewan custom functions git_install("EwanMcHenry/U.utilities")
 
