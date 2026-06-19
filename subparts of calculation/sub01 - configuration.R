@@ -2,7 +2,7 @@
 # functional connectivity metric dev
 # sub 01.2 - setting constants
 sf_use_s2(FALSE)
-troubleshooting = T # saves outputs for troubleshooting
+troubleshooting = F # saves outputs for troubleshooting
 
 # Note - also can config "Data\\hab costs and edge effects Eycott 2011.csv"
 
@@ -45,24 +45,24 @@ leaflet.path = paste0(func.conect.path,
 # Focal_landscape$name = "Forth Climate Forest"
 
 # ### Northern Forest ----
-# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
-# Focal_landscape <- Focal_landscape[7,]
-# Focal_landscape$name = "Northern Forest"
+Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
+Focal_landscape <- Focal_landscape[7,]
+Focal_landscape$name = "Northern Forest"
 
 
 ### Example landscape in Northern Forest ----
-Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% 
-  st_transform( 27700) %>% 
-  filter(name == "Northern Forest" ) %>%   
-  st_make_valid() %>%  # to fix any topology issues
-  summarise()
-Focal_landscape$name = "e.g. NF landscape"
+# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% 
+#   st_transform( 27700) %>% 
+#   filter(name == "Northern Forest" ) %>%   
+#   st_make_valid() %>%  # to fix any topology issues
+#   summarise()
+# Focal_landscape$name = "e.g. NF landscape"
 
-# find center of landscape
-landscape_centroid = st_centroid(Focal_landscape$geometry)
-# cut out a 10x10 km square around the centroid and overwrite Focal_landscape
-centroid.square = st_buffer(landscape_centroid, 7071) %>% st_bbox() %>% st_as_sfc() # 7071m is half the diagonal of a 10x10km square
-Focal_landscape$geometry = st_intersection(Focal_landscape$geometry, centroid.square)
+# # find center of landscape
+# landscape_centroid = st_centroid(Focal_landscape$geometry)
+# # cut out a 10x10 km square around the centroid and overwrite Focal_landscape
+# centroid.square = st_buffer(landscape_centroid, 7071) %>% st_bbox() %>% st_as_sfc() # 7071m is half the diagonal of a 10x10km square
+# Focal_landscape$geometry = st_intersection(Focal_landscape$geometry, centroid.square)
 
 ## AWI directory ----
 awi.dir <- paste0(gis.wd, "\\Data\\ancient woodland\\original\\AWI_joined_v4.02.shp")
@@ -74,7 +74,7 @@ nwss.dir <- paste0(gis.wd, "\\Data\\NWSS\\Native_Woodland_Survey_of_Scotland.shp
 roads.dir <- paste0(gis.wd, "\\Data\\Roads\\UK_roads_major.gpkg")
 
 # Define year ----
- years.considered = c(2015, 2024) #
+ years.considered = c(2020, 2024) #
 # years.considered = c(2024, 2020) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years.considered = c( 2019) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years for which change is calculated, 
@@ -112,16 +112,21 @@ constants <- list(
   multiple.max.considered = 2, # factor to limit patch searching to an absolute max dispersal distance for computationall efficiency
 
   # dispersal cost parameters
+  cost.dist.method = "terra", # method to use for cost distance calculations, "terra" or "gdistance" # terra runs x6-7 times faster than gdist
   focal.hab.cost.num = 1, # lcm code, 1 is broadleaf
   focalhab.cost = 0.05, # cost of moving through focal (bl woodland) habitat - given nominal amount to protect against imapct of super thin corridors
                 # could consider to be 1
+  
+  agg_cost_surface = T, # if T will mean-aggregate the cost surface to reduce computing time, if F will use full resolution cost  -- note that is the only way to get perfectly symetrical costs to and from patches... if thats what you want
   cost.res = 100, # size of cell to be mean-aggregated over in m (vert and horiz) for dispersal cost. higher to reduce computing time. must be multiple of lcm.res (e.g. 100 is 4 x 25)
   
   #landscape buffer
   # used in sub03 - 
   # define resolution of the landscape and the very rough buffer beyond focal landscape, to consider outside impacts
-  landscape.buffer.simplification.tolerance = c(100, 1000) 
+  landscape.buffer.simplification.tolerance = c(100, 1000), 
   
+  run_parallel = T, # run cost distance calculations in parallel, if F will run sequentially(safer, probably)
+  cores_for_parallel = 3 # number of cores to use for parallel processing, if run_parallel = T
   )  
 
 
@@ -156,7 +161,7 @@ constants$buffer.roundLandscape = constants$max.dispersal.considered # buffer ar
 
 # derive scaling for dispersal costs to optimise cost distance calculations
 # scale cost by fraction of maximum cost - cost clacs work best when costs close to 1, only use multiples becasue easy to scale final distances
-constants$cost.scale.factor = max(dispers.costs$ecolog.cost)/5
+constants$cost.scale.factor = 1#max(dispers.costs$ecolog.cost)/5
 dispers.costs$scaled.ecolog.cost <-  dispers.costs$ecolog.cost/constants$cost.scale.factor
 
 
