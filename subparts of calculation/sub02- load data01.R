@@ -3,6 +3,7 @@
 # script 02 - loading data
 
 # data ----
+landscape_stats <- list(NA) # setup for saving landscape stats for each landscape
 
 irish_isles <- gisco_get_countries(
   country = c("UK", "IE", "IM"),
