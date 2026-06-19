@@ -32,7 +32,10 @@ n_breaks_in_legend_change = 5
 # LOAD and store all landscape and hexgrid eca info: landscape.metrics.all all.hexgrids ----
 #  make objects to store in
 load(paste0(func.conect.path, "\\analysis outputs\\", 
-            this.tss[1], "\\", years.considered[1], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
+            this.tss[1], "\\", years.considered[2], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
+
+
+
 landscape.metrics.all = landscape.metrics[0,]
 # load up data needed for landscapes in loop
 
