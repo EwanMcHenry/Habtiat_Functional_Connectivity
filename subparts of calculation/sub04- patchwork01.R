@@ -11,8 +11,12 @@
 ## find area of hostile edge within patch and within-patch-awi hostile edge
 ## patch-grid centroids
 
+load(paste0(func.conect.path, 
+            "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData"))
+
 # PATCH WORK ----
 
+landscape_stats[[this.tss[[this.ts.num]]]] <- list()
 
 ## id habitat - bl.landscape ----
 
@@ -20,9 +24,19 @@
 if(this.country == "Scotland" & constants$focal.hab.num.lcm ==1){ # if scotland and focal habitat is broadleaf
   # change conifer cells with >50% native canopy in NWSS to focal habitat in lcm landscape
   ## (for habitat id, intensive landuse edge effect and movement calcs)
+  
+  nwss.native.conifer_landscape_rast = terra::rasterize(
+    terra::vect(nwss.native.conifer.landscape),
+    lcm.landscape,
+    field = 1,
+    background = 0,
+    touches = TRUE
+  )
+  
+  
   values(lcm.landscape)[
     values(lcm.landscape) == constants$alt.hab.scot.nwss & 
-      values(nwss.native.conifer.landscape) == 1] = constants$focal.hab.num.lcm
+      values(nwss.native.conifer_landscape_rast) == 1] = constants$focal.hab.num.lcm
 }
 
 bl.landscape = lcm.landscape
@@ -39,11 +53,74 @@ trouble_plot(bl.buff, "buffered habitat raster, before cutting by intensive land
 bl.buff[ lcm.landscape %in% dispers.costs$hab.num[dispers.costs$patch_breaking]] = NA
 trouble_plot(bl.buff, "buffered habitat raster, cut by intensive landuse")
 
-## id initial patches from cut habitat buffer
-bl.patch.id.rast <- bl.buff %>% 
-  terra::patches(directions = 8) %>% 
+# raster hex - hex_id.r ----
+
+## id initial patches from cut habitat buffer ----
+### gotta do this by hex, takes too long otherwise with the high res raster
+
+## split initial patches by hexgrid
+### hex raster
+hex_id.r <- terra::rasterize(
+  terra::vect(tsbuff.hexgrid),
+  bl.buff,
+  field = "grid_id"
+) 
+trouble_plot(hex_id.r, "hex ID raster")
+
+# 
+# if(constants$chunk_up_patch_iding){
+#   
+#   template_r <- bl.buff
+#   template_r[] <- NA
+#   
+#   vals <- values(bl.buff)
+#   hex_vec <- values(hex_id.r)
+#   cells <- seq_along(vals)
+#   
+#   hex_index <- split(cells, hex_vec)
+#   hex_index <- hex_index[!is.na(names(hex_index))]
+#   
+#   
+#   # define hex chunks 
+#   hex_ids <- sort(unique(hex_vec))
+#   
+#   hex_chunks <- split(
+#     hex_ids,
+#     ceiling(seq_along(hex_ids) / constants$chunk_size)
+#   )
+#   
+#   patch_chunks <- vector("list", length(hex_chunks))
+#   
+# 
+#   for (i in seq_along(hex_chunks)) {
+#     
+#     chunk <- hex_chunks[[i]]
+#     
+#     idx <- unlist(hex_index[as.character(chunk)], use.names = FALSE)
+#     
+#     r <- template_r   # cheap copy of structure only
+#     r[idx] <- 1       # direct assignment (no full rep())
+#     
+#     patch_chunks[[i]] <- terra::patches(r, directions = 8)
+#     
+#     cat("Finished chunk", i, "of", length(hex_chunks), "\n")
+#   }
+#   
+#   bl.patch.id.rast <- Reduce(
+#     function(x, y) terra::cover(x, y),
+#     patch_chunks
+#   )
+# }else{
+
+
+# consider runnign this by hex and then recombining
+  bl.patch.id.rast <- bl.buff %>% 
+    terra::patches(directions = 8)
+  
+# }
+bl.patch.id.rast <- bl.patch.id.rast %>% 
   terra::mask(bl.landscape)
-trouble_plot(bl.patch.id.rast, "patch ID raster")
+trouble_plot(bl.patch.id.rast, "patch ID raster2")
 
 
 ## id suboptimal edge and core habitat - sub_optimal_edge_habitat.rast - core_habitat.rast ----
@@ -70,20 +147,37 @@ edge.effecting_list <- lapply(classes, function(cl) {
 trouble_plot(edge.effecting_list[[2]], "edge effecting landscape - e.g arable")
 
 grow_class <- function(r, dist) {
-  d <- terra::distance(r) 
-  r_grown <- d <= (dist*2) # is the raster cell within the distance of effect of this class? multiplied by 2 becasue the distance given is the maxis from the edge of the class (e.g. 25 for the neighbouring 25m cell with res 25m)... so here its like, is the max buffer distance closer to this cell or the next
-  trouble_plot(d, "distance to edge effecting class")
+  print(global(r, c("min", "max"), na.rm = F))
+  print(dist)
+  
+  d <- terra::distance(r,target= 0) 
+  trouble_plot(d, paste0("d", cl))
+  
+  print(global(d, c("min", "max"), na.rm = TRUE))
+  
+  r_grown <- (d - as.numeric(constants$lcm.res)) <= dist # is the raster cell within the distance of effect of this class?  subtractign the res to ask does it enter that sq
+  # trouble_plot(d, "distance to edge effecting class")
   
   r_grown
 }
 grown_edge.effecting_list <- lapply(classes, function(cl) {
   r <- 1*(edge.effecting_list[[which(classes==cl)]])
-  r[r==0] <- NA
+  # r[r==0] <- NA
+  trouble_plot(r, paste0("r", cl))
+  
   dist <-  dispers.costs$edge.extent[dispers.costs$hab.num == cl] 
   g  <-  grow_class(r, dist)
   g
+  # trouble_plot(g, paste0("g", cl))
+  
 })
-trouble_plot(grown_edge.effecting_list[[2]], "grown edge effecting landscape - e.g arable")
+for(i in 1:length(grown_edge.effecting_list)){
+  trouble_plot(grown_edge.effecting_list[[i]], paste("grown edge effecting landscape - e.g ", i))
+  trouble_plot(edge.effecting_list[[i]], paste("edge.effecting_list - e.g ", i))
+  
+}
+
+
 # combine all edge effecting classes into one raster
 grown_edge.effecting.rast <- Reduce(`|`, grown_edge.effecting_list)
 trouble_plot(grown_edge.effecting.rast, "grown edge effecting landscape - combined")
@@ -102,16 +196,6 @@ trouble_plot(core_habitat.rast, "core habitat")
 
 
 
-# raster hex - hex_id.r ----
-
-## split initial patches by hexgrid
-### hex raster
-hex_id.r <- terra::rasterize(
-  terra::vect(tsbuff.hexgrid),
-  bl.patch.id.rast,
-  field = "grid_id"
-) 
-trouble_plot(hex_id.r, "hex ID raster")
 
 
 # raster awi - awi_hab.r ----
@@ -252,11 +336,17 @@ lcm_summary <- cells %>%
     names_prefix = "lcm_",
     values_fill = 0
   )
+
+non_coastal_land_cols <-  grep("^lcm_", names(ts.hexgrid), value = TRUE)
+non_coastal_land_cols <- non_coastal_land_cols[!non_coastal_land_cols %in% paste0("lcm_", coastal_water_lcm)]
+non_coastal_land_cols <- non_coastal_land_cols[non_coastal_land_cols != "lcm_NA"]
+
 ts.hexgrid <- ts.hexgrid %>%
   dplyr::left_join(hex_summary, by = "grid_id") %>%
-  dplyr::left_join(lcm_summary, by = "grid_id") %>% 
-  
+  dplyr::left_join(lcm_summary, by = "grid_id")
 
+ts.hexgrid$non_coastal_land_area <-
+  rowSums(sf::st_drop_geometry(ts.hexgrid)[non_coastal_land_cols], na.rm = TRUE)
 
 
 # SAVE PATCH DATA ----
@@ -265,12 +355,12 @@ save(ts.hexgrid,
      hex_summary,
      file = 
        paste0(func.conect.path, "\\analysis outputs\\", 
-              this.tss[this.ts.num], "\\", this.year, "\\r_funcconnect_patchwork.RData")
+              this.tss[this.ts.num], "\\", this.year, "\\lcmres", constants$lcm.res, "\\04_r_funcconnect_patchwork.RData")
 )
 terra::writeRaster(
   r_stack,
   file = paste0(func.conect.path, "\\analysis outputs\\", 
-                               this.tss[this.ts.num], "\\", this.year, "\\r_stack.tif"),
+                               this.tss[this.ts.num], "\\", this.year, "\\lcmres", constants$lcm.res, "\\04_r_stack.tif"),
   overwrite = TRUE
 )
 
@@ -282,9 +372,10 @@ if(grepl("Illustrative", this.tss[this.ts.num]) ){
        awi.landscape,
        edge,
        intensive.landscape,
+       
        file = 
          paste0(func.conect.path, "\\analysis outputs\\", 
-                this.tss[this.ts.num], "\\", this.year, "\\edge_awi.polys.RData")
+                this.tss[this.ts.num], "\\", this.year, "\\lcmres\\", constants$lcm.res,"\\edge_awi.polys.RData")
   )
   
 }
@@ -292,9 +383,13 @@ if(grepl("Illustrative", this.tss[this.ts.num]) ){
 
 # 
 
-rm(lcm_summary,
+rm(cells, cells2,lcm_summary ,hex_summary , 
+   patch_centroid_info, tsbuff.hexgrid, 
+   centroids, agg_wide, agg,
+
+   awi.landscape, 
+   lcm_summary,
    hex_summary,
-   patch_centroid_info,
    countries,
    tsbuff.hexgrid, ts.hexgrid,
    cells, cells2,
@@ -309,5 +404,5 @@ rm(lcm_summary,
    bl.buff,  r_stack,
    intensive.landscape)
 gc()
-print("Patch definition (script04) done")
+print(paste(this.tss[this.ts.num], "Patch definition (script04) done"))
 # sort(sapply(ls(), function(x) object.size(get(x))), decreasing = TRUE)
