@@ -31,8 +31,9 @@ n_breaks_in_legend_change = 5
 
 # LOAD and store all landscape and hexgrid eca info: landscape.metrics.all all.hexgrids ----
 #  make objects to store in
-load(paste0(func.conect.path, "\\analysis outputs\\", 
-            this.tss[1], "\\", years.considered[2], "\\r_funcconnect_EffectiveAreas_ECAobs_.RData"))
+load(paste0(func.conect.path, 
+            "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\lcmres", constants$lcm.res, 
+            "\\06_r_funcconnect_EffectiveAreas_ECAobs_.RData"))
 
 
 
