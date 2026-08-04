@@ -2,15 +2,21 @@
 ##------ Fri Feb 25 09:19:50 2022 ------##
 # functional connectivity metric dev
 # script 03 - data curation
+## make folder for this focal landscape ----
+dir.create(paste0(func.conect.path, 
+                  "\\analysis outputs\\", this.tss[this.ts.num]))
 
 # curation ----
-
+load(paste0(func.conect.path, 
+            "\\analysis outputs\\r_global_data_.RData"))
+load(paste0(func.conect.path, 
+            "\\analysis outputs\\r_curated_global_data_.RData"))
 
 ## CUT DATA TO LANDSCAPE AND SAVE ----
 ### select buffered landscape to avoid edge effects  ----
-this.ts = Focal_landscape[this.ts.num,]
+this.ts = Focal_landscape[this.ts.num,] %>% 
+  st_simplify(preserveTopology = T, constants$landscape.buffer.simplification.tolerance[1])
 ts.buff = this.ts %>% 
-  st_simplify( preserveTopology = T, dTolerance = constants$landscape.buffer.simplification.tolerance[1]) %>% # first simplify hack to reduce run time. this is a rough buffer to negate edge effects, so can be v rough
   st_buffer( dist = constants$max.dispersal.considered) %>% # buffer
   st_simplify( preserveTopology = FALSE, dTolerance = constants$landscape.buffer.simplification.tolerance[2]) # simplify again
 ### name of country ----
@@ -41,6 +47,7 @@ crs_use <- if (this.country == "Northern Ireland") {
 
 awi <- st_transform(awi, crs_use)
 nwss <- st_transform(nwss, crs_use)
+roads_uk_major <- st_transform(roads_uk_major, crs_use)
 
 this.ts <- st_transform(this.ts, crs_use)
 ts.buff <- st_transform(ts.buff, crs_use)
@@ -101,17 +108,15 @@ if(troubleshooting ==T){
 save(awi.landscape, 
      nwss.native.conifer.landscape,
      roads.landscape,
-
      file = paste0(func.conect.path, 
                    "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated_data.awi_nwss_roads.RData")
 )
 
-save(tsbuff.hexgrid,
-     awi.landscape,
-     ts.hexgrid,
+save(ts.buff,
+     tsbuff.hexgrid,
      this.ts,
+     ts.hexgrid,
      this.country,
-     roads.landscape,
      countries,
      file = paste0(func.conect.path, 
                    "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData")
@@ -142,4 +147,15 @@ rm(roads.landscape, roads_uk_major,
    #tsbuff.lcm_tplus1.rast25.unpro, tsbuff.lcm_t.rast25.unpro
 )
 gc()
+
+
+
 print("Data curation (script03) done")
+
+
+
+# sort(
+#   sapply(ls(envir = .GlobalEnv), function(x)
+#     object.size(get(x, envir = .GlobalEnv))),
+#   decreasing = TRUE
+# )
