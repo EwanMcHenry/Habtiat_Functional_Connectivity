@@ -77,14 +77,13 @@ library(U.utilities) # Ewan custom functions git_install("EwanMcHenry/U.utilitie
 # }
 
 
-trouble_plot <- function(x, name) {
-  if (isTRUE(troubleshooting)) {
-    
-    out_path <- file.path(
-      func.conect.path,
-      "troubleshooting_saves"
-    )
-    
+trouble_plot <- function(x, name, do_troubleshooting  = troubleshooting,
+                         out_path = file.path(
+                           func.conect.path,
+                           "troubleshooting_saves"
+                         )) {
+
+  if (isTRUE(do_troubleshooting )) {
     if (inherits(x, "SpatRaster")) {
       
       terra::writeRaster(
