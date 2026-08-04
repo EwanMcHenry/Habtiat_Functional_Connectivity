@@ -1,4 +1,11 @@
 ### select and mask lcm ----
+
+load(paste0(func.conect.path, 
+            "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData"))
+load(paste0(func.conect.path, 
+            "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated_data.awi_nwss_roads.RData"))
+
+
 ## select years and corresponding index ----
 lcm <- load_lcm_year(
     lcm.directs = lcm.directs,
@@ -24,8 +31,14 @@ roads.rast <- terra::rasterize(
 
 lcm.landscape[roads.rast == 1] <- 22 # assign roads a unique value in lcm to be able to identify them later
 names(lcm.landscape) <- paste0("lcm")
-trouble_plot(lcm.landscape, "lcm_landscape_with_roads")
-
+trouble_plot(lcm.landscape, 
+             name = paste0("lcm_with_roads_", this.tss[this.ts.num], "_",this.year ), 
+             do_troubleshooting  = T,
+             out_path = paste0(func.conect.path,
+                               "\\analysis outputs\\", 
+                               this.tss[this.ts.num],
+                               "\\", this.year, "\\lcmres", constants$lcm.res)
+)
 
 
 # write roads raster
@@ -36,3 +49,12 @@ rm(lcm,
 gc()
 
 
+print("LCM curation (script03.1) done")
+
+# sort objects in memory by size
+
+# sort(
+#   sapply(ls(envir = .GlobalEnv), function(x)
+#     object.size(get(x, envir = .GlobalEnv))),
+#   decreasing = TRUE
+# )
