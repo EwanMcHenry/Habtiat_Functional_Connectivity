@@ -19,8 +19,8 @@ leaflet.path = paste0(func.conect.path,
 
 # landscape directory - DEFINE focal LANDSCAPE(S) ----
 # landscape must be a single polygon... obviously, st_union is to make sure.
-# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
-# Focal_landscape <- Focal_landscape[10,]
+
+Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\treescapes.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
 
 # Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\BBNP\\bbnpa_poly.shp")) %>% st_transform( 27700) %>% st_union() %>% st_as_sf()
 # Focal_landscape$name = "nau Brycheiniog National Park"
@@ -45,20 +45,15 @@ leaflet.path = paste0(func.conect.path,
 # Focal_landscape$name = "Forth Climate Forest"
 
 # ### Northern Forest ----
-Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
-Focal_landscape <- Focal_landscape[7,]
-Focal_landscape$name = "Northern Forest"
+# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\Northern_Forest - GIS file of boundary, 2025\\Northern_Forest.shp")) %>% st_transform( 27700) %>% arrange(name) # sf of landscapes for whcih connectivitty is to be calcualted
+# Focal_landscape$name = "Northern Forest"
 
 
 ### Example landscape in Northern Forest ----
-# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Treescape boundaries\\Ewan TS_priority_v1.01gbgrid01.shp")) %>% 
-#   st_transform( 27700) %>% 
-#   filter(name == "Northern Forest" ) %>%   
-#   st_make_valid() %>%  # to fix any topology issues
-#   summarise()
+# Focal_landscape = st_read(paste0(gis.wd, "\\Data\\Landscapes\\Northern_Forest - GIS file of boundary, 2025\\Northern_Forest.shp")) %>% st_transform( 27700) %>% arrange(name) 
 # Focal_landscape$name = "e.g. NF landscape"
-
-# # find center of landscape
+# 
+# # # find center of landscape
 # landscape_centroid = st_centroid(Focal_landscape$geometry)
 # # cut out a 10x10 km square around the centroid and overwrite Focal_landscape
 # centroid.square = st_buffer(landscape_centroid, 7071) %>% st_bbox() %>% st_as_sfc() # 7071m is half the diagonal of a 10x10km square
@@ -74,7 +69,7 @@ nwss.dir <- paste0(gis.wd, "\\Data\\NWSS\\Native_Woodland_Survey_of_Scotland.shp
 roads.dir <- paste0(gis.wd, "\\Data\\Roads\\UK_roads_major.gpkg")
 
 # Define year ----
- years.considered = c(2020, 2024) #
+ years.considered = 2021:2023#c(2020, 2024) #
 # years.considered = c(2024, 2020) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years.considered = c( 2019) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years for which change is calculated, 
@@ -92,19 +87,20 @@ constants <- list(
   hexdist.v = 2000,
   hexdist.h = 2000,
   # - NOTE - hex size is smaller than max dispersal considered. Im happy with this, but if it is bigger it might cause problems later in cost dist calc subscript 05.. might not ... think about it
-  lcm.res = "25", # resolution of lcm data to use, must be 25 or 10 
+  lcm.res = "25", # "10", #resolution of lcm data to use, must be 25 or 10 
   
   
   ## patch identification ----
   focal.hab.num.lcm = 1, # 1 is broadleaf
   alt.hab.scot.nwss = 2, # if in scotland, conifer with >50% native canopy is also focal habitat, this is the lcm code for conifer= 2
   # patch clumping buffer -   # often single real life "patch" might be split by 1-2 cells in teh data, this is the distance to join such split-patches into one
-  buffer.for.patchid = 25, # distance to buffer around LCM patchest to define patch ID, this is 1/2 the max distance separating clumps within the same patch
+  buffer.for.patchid = 50, # distance to buffer around LCM patchest to define patch ID, this is 1/2 the max distance separating clumps within the same patch
+  # note FOBI uses 100m threshold for grouping patches
 
   ## patch quality modifiers  - taken from delphi expert opinion
   relative.edge.quality = 0.6, # relative value of edge habitat compared to core(1)
   non.awi.qual.eff = 1, # relative value of non awi
-  awi.qual.eff =  1/0.45, # relative value of awi within patches
+  awi.qual.eff =  10/7, # FOBI (prioritising how might be maniuplated) = 10/7, internal delphi = 1/0.45, # relative value of awi within patches
   
   # dispersal distance parameters - just change the dispersal.dist.set
   dispersal.dist.set = 1000, # distance where dispersal success probably is set
@@ -124,9 +120,11 @@ constants <- list(
   # used in sub03 - 
   # define resolution of the landscape and the very rough buffer beyond focal landscape, to consider outside impacts
   landscape.buffer.simplification.tolerance = c(100, 1000), 
-  
+
   run_parallel = T, # run cost distance calculations in parallel, if F will run sequentially(safer, probably)
-  cores_for_parallel = 3 # number of cores to use for parallel processing, if run_parallel = T
+  cores_for_parallel = 3, # number of cores to use for parallel processing, if run_parallel = T
+  chunk_up_patch_iding = T,
+  chunk_size = 200  # tune this: 20–200 usually ideal
   )  
 
 
