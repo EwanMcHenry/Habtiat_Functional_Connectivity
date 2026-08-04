@@ -10,11 +10,12 @@
   # ## load curated data ----
   load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\r_curated data_.RData"))
   ## LOAD PATCH DATA ----
-  load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\r_funcconnect_patchwork.RData"))
+  load(paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], 
+              "\\", this.year, "\\lcmres", constants$lcm.res, "\\04_r_funcconnect_patchwork.RData"))
   
   r_stack <- terra::rast(
     paste0(func.conect.path, "\\analysis outputs\\", 
-           this.tss[this.ts.num], "\\", this.year, "\\r_stack.tif"))
+           this.tss[this.ts.num], "\\", this.year, "\\lcmres", constants$lcm.res, "\\04_r_stack.tif"))
   
   
   
@@ -25,13 +26,13 @@
   #replace gaps with high-cost landscape - these are normally sea, but can be beyond edge of landscape, this shouldnt be a problem, becasue landscape is buffered
   values(hab.cost.lcm)[is.na(values(hab.cost.lcm))] = max(dispers.costs$scaled.ecolog.cost[values(r_stack$lcm)],na.rm=T)
   trouble_plot(hab.cost.lcm, "habitat cost layer")
-  writeRaster(hab.cost.lcm, paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\habitat_cost_layer.tif"), overwrite = T)
+  writeRaster(hab.cost.lcm, paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\lcmres", constants$lcm.res, "\\habitat_cost_layer.tif"), overwrite = T)
   
   # aggragate cost raster by mean to reduce resolution and computational power ----
   if(constants$agg_cost_surface == T){
     hab.cost.agg.rast = aggregate(hab.cost.lcm, constants$cost_agg_n, max, na.rm = T) # 4 x 4 mean aggregation
     trouble_plot(hab.cost.agg.rast, "habitat cost layer aggregated")
-    writeRaster(hab.cost.agg.rast, paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\habitat_cost_layer_aggregated.tif"), overwrite = T)
+    writeRaster(hab.cost.agg.rast, paste0(func.conect.path, "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\lcmres", constants$lcm.res, "\\habitat_cost_layer_aggregated.tif"), overwrite = T)
     cost_raster = hab.cost.agg.rast
     rm(hab.cost.agg.rast)
   } else{
@@ -41,15 +42,42 @@
   ## save LANDSCAPE cost INFO ----
   # Mean landscape cost
   # mean cost traveling through "not sea" in landscape
-  landscape_stats[[this.ts.num]]$year_stats$landscape.mean.ecolog.cost.not.sea = mean(values(hab.cost.lcm)[!(values(r_stack$lcm  ) %in% coastal_water_lcm) & !is.na(values(r_stack$lcm  ))])*constants$cost.scale.factor
+  landscape_costs = values(hab.cost.lcm)[!(values(r_stack$lcm  ) %in% coastal_water_lcm) & !is.na(values(r_stack$lcm  ))]*constants$cost.scale.factor
+  
+  landscape_stats[[this.tss[this.ts.num]]][[this.year]] <- list()
+  landscape_stats[[this.tss[this.ts.num]]][[this.year]]$landscape.ecolog.cost.not.sea_mean = mean(landscape_costs, na.rm = T)
+  landscape_stats[[this.tss[this.ts.num]]][[this.year]]$landscape.ecolog.cost.not.sea_median = median(landscape_costs, na.rm = T)
+  landscape_stats[[this.tss[this.ts.num]]][[this.year]]$landscape.ecolog.cost.not.sea_p70 = quantile(landscape_costs, 0.7, na.rm = T)
+  
   # landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(r_stack$lcm) %in%coastal_water_lcm) & !is.na(values(r_stack$lcm))])*constants$cost.scale.factor
   
-  # mean hex cost
-  # mean costs of hexes "not sea" in land scape
+  # save hex permiability / cost ----
+  # costs of hexes "not sea or coastal" in land scape
   not.sea.cost = hab.cost.lcm
   values(not.sea.cost)[(values(r_stack$lcm) %in% coastal_water_lcm) | is.na(values(r_stack$lcm))] = NA
-  landscape_stats[[this.ts.num]]$year_stats$mean.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "mean" )*constants$cost.scale.factor
-  # ts.hexgrid$median.ecolog.cost.not.sea = exact_extract(not.sea.cost, ts.hexgrid, "median" )*constants$cost.scale.factor
+  
+  cost_stats <- exact_extract(
+    not.sea.cost,
+    ts.hexgrid,
+    function(values, coverage_fraction) {
+      
+      values <- values[!is.na(values)]
+      
+      if (length(values) == 0) {return(c(mean   = NA_real_, median = NA_real_, p70    = NA_real_))
+      }
+      
+      c(mean   = mean(values, na.rm = TRUE),
+        median = median(values, na.rm = TRUE),
+        p70    = quantile(values, 0.70, names = FALSE, na.rm = TRUE)
+      )
+    }
+  )
+  
+  
+  ts.hexgrid$ecolog.cost.not.sea_mean <- cost_stats["mean", ] * constants$cost.scale.factor
+  ts.hexgrid$ecolog.cost.not.sea_median <- cost_stats["median", ] * constants$cost.scale.factor
+  ts.hexgrid$ecolog.cost.not.sea_p70 <- cost_stats["p70", ] * constants$cost.scale.factor
+  # ts.hexgrid$ecolog.cost.not.sea_median = exact_extract(not.sea.cost, ts.hexgrid, "median" )*constants$cost.scale.factor
   
   # CANDIDATE CONNECTIONS ----
   
@@ -341,21 +369,22 @@
      #  big.cost.dist,
      landscape_stats,
        patch_centroid_info, 
+     ts.hexgrid,
        file = 
        paste0(func.conect.path, 
-              "\\analysis outputs\\", this.ts.for.loop[this.ts.num], "\\", this.year, "\\r_funcconnect_MatrixCostDists.RData")
+              "\\analysis outputs\\", this.ts.for.loop, "\\", this.year, "\\lcmres", constants$lcm.res, "\\05_r_funcconnect_MatrixCostDists.RData")
   )
   
   rm(list = c("hab.cost.lcm", "cost_raster", "patches", "patch_centroid_info", "candidate_pairs", "lcd_edges"))
   
   
   
-  if(grepl("Illustrative", this.ts.for.loop[this.ts.num]) ){
+  if(grepl("Illustrative", this.ts.for.loop) ){
     save(gridbuff_Tcost.C,
          file = 
            paste0(func.conect.path, 
                   "\\analysis outputs\\", 
-                       this.ts.for.loop[this.ts.num], "\\", this.year, "\\cost.objects.RData")
+                       this.ts.for.loop, "\\", this.year, "\\lcmres", constants$lcm.res, "\\05_cost.objects.RData")
     )
     
   }
