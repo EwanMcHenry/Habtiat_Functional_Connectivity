@@ -42,19 +42,19 @@
   ## save LANDSCAPE cost INFO ----
   # Mean landscape cost
   # mean cost traveling through "not sea" in landscape
-  landscape_costs = values(hab.cost.lcm)[!(values(r_stack$lcm  ) %in% coastal_water_lcm) & !is.na(values(r_stack$lcm  ))]*constants$cost.scale.factor
+  landscape_costs = values(hab.cost.lcm)[!(values(r_stack$lcm  ) %in% constants$coastal_water_lcm) & !is.na(values(r_stack$lcm  ))]*constants$cost.scale.factor
   
   landscape_stats[[this.tss[this.ts.num]]][[this.year]] <- list()
   landscape_stats[[this.tss[this.ts.num]]][[this.year]]$landscape.ecolog.cost.not.sea_mean = mean(landscape_costs, na.rm = T)
   landscape_stats[[this.tss[this.ts.num]]][[this.year]]$landscape.ecolog.cost.not.sea_median = median(landscape_costs, na.rm = T)
   landscape_stats[[this.tss[this.ts.num]]][[this.year]]$landscape.ecolog.cost.not.sea_p70 = quantile(landscape_costs, 0.7, na.rm = T)
   
-  # landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(r_stack$lcm) %in%coastal_water_lcm) & !is.na(values(r_stack$lcm))])*constants$cost.scale.factor
+  # landscape.median.scaled.ecolog.cost.not.sea = median(values(hab.cost.lcm)[!(values(r_stack$lcm) %in% constants$coastal_water_lcm) & !is.na(values(r_stack$lcm))])*constants$cost.scale.factor
   
   # save hex permiability / cost ----
   # costs of hexes "not sea or coastal" in land scape
   not.sea.cost = hab.cost.lcm
-  values(not.sea.cost)[(values(r_stack$lcm) %in% coastal_water_lcm) | is.na(values(r_stack$lcm))] = NA
+  values(not.sea.cost)[(values(r_stack$lcm) %in% constants$coastal_water_lcm) | is.na(values(r_stack$lcm))] = NA
   
   cost_stats <- exact_extract(
     not.sea.cost,
@@ -361,8 +361,7 @@
 
   print(Sys.time() -time.now)
   # rescale cost distance to actual effective distance (before costs scaled to be close to 1 for computational efficiency)
-  print("cost distance done")
-  
+
   
   # SAVE PATCH DATA ----
   save(candidate_pairs,
@@ -392,7 +391,7 @@
   rm()
   gc()
        
-  print("Landscape matrix and patch linkage (script05) done")
+  print(paste(this.tss[this.ts.num], this.year,"Landscape matrix and patch linkage (script05) done"))
   
   
   
