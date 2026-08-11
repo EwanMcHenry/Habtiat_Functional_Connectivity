@@ -69,12 +69,14 @@ nwss.dir <- paste0(gis.wd, "\\Data\\NWSS\\Native_Woodland_Survey_of_Scotland.shp
 roads.dir <- paste0(gis.wd, "\\Data\\Roads\\UK_roads_major.gpkg")
 
 # Define year ----
- years.considered = 2021:2023#c(2020, 2024) #
+ years.considered = 2020:2024#c(2020, 2024) #
 # years.considered = c(2024, 2020) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years.considered = c( 2019) # vector of years to be calcualted over -- must be LCM data availible and comparible for these years
 # years for which change is calculated, 
 ## must be in years.considered and length 2
 change_years <- sort(years.considered) 
+
+pulling_landscapes <- Focal_landscape$name # vector of names of all landscapes to be combined together in final output
 
 # Indicators ----
 # high level metric scores
@@ -93,6 +95,7 @@ constants <- list(
   ## patch identification ----
   focal.hab.num.lcm = 1, # 1 is broadleaf
   alt.hab.scot.nwss = 2, # if in scotland, conifer with >50% native canopy is also focal habitat, this is the lcm code for conifer= 2
+  coastal_water_lcm = c(13, 15, 16, 17, 18, 19), # for calcualting costs etc over non-coastal areas.
   # patch clumping buffer -   # often single real life "patch" might be split by 1-2 cells in teh data, this is the distance to join such split-patches into one
   buffer.for.patchid = 50, # distance to buffer around LCM patchest to define patch ID, this is 1/2 the max distance separating clumps within the same patch
   # note FOBI uses 100m threshold for grouping patches
@@ -106,6 +109,9 @@ constants <- list(
   dispersal.dist.set = 1000, # distance where dispersal success probably is set
   prob.dispersal.at.set = 0.5, # probability of successful dispersal at dispersal.dist.set
   multiple.max.considered = 2, # factor to limit patch searching to an absolute max dispersal distance for computationall efficiency
+  magic.lcd.refactoror = 7.509, # see D:/Users/Ewan McHenry/OneDrive - the Woodland Trust/GIS/Connectivity/Habtiat_Functional_Connectivity/Tuning in lcd refacteror!.qmd Im suyre all wil becoem clear.... lolz
+  
+  
 
   # dispersal cost parameters
   cost.dist.method = "terra", # method to use for cost distance calculations, "terra" or "gdistance" # terra runs x6-7 times faster than gdist
