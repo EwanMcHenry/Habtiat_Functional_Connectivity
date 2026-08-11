@@ -1,0 +1,209 @@
+---
+title: "Tuning least cost distances"
+author: "Ewan McHenry"
+format: html
+editor: visual
+---
+
+## Background
+
+I came to this after running all the models and getting the results for functional conectivity. Comparing the ones caclulated usign euclidian vs the least cost distancec models reviewaled different trends some times... worrying. This is probably because probability connectivity is typically much lower for the LCD models, becasue the cost is normally greater than euclidian distance. As a result, the LCD models tend to favour more connected landscapes, probably too much.
+
+I have the vauge idea here of doing some analysis to support a hack to re-tune the alpha parameter when LCD models are done, so that (on average) similar probability connectivities are callculated, but that it will still favour landscapes with greater permiability.
+
+```{r prep}
+# wanting to explroe candidate pairs, distances between them, probabilty of connectivity for lcd adn eculidian, with a mind to esimating the factor of the alpha parameter that would get similar dispersal success on average.
+# this will still respect the difference between land cover types, but keep average dispersal distances more similar to what is oberved IRL
+
+#libraries and model confis
+source("subparts of calculation\\sub00- loading libraries and functions.R")
+source("subparts of calculation\\sub01 - configuration.R") # configureation file
+
+# load the data
+load(paste0(
+  func.conect.path,
+  "\\analysis outputs\\",
+  "all_treescapes_all_years_lcmres", constants$lcm.res,
+  "\\",
+  paste(years.considered, collapse = "-"), "_scapes_",
+  paste(substr(pulling_landscapes, 1, 2), collapse = "-"),
+  "_patch_pairs_centroids.RData"
+))
+
+
+# all the pairs from all the treescapes form all years (yeah, its a big object!)
+pairs_df <-all_candidate_pairs %>%
+  imap_dfr(~{
+    landscape <- .y
+    
+    .x %>%
+      imap_dfr(~{
+        year <- .y
+        
+        .x %>%
+          mutate(
+            landscape = landscape,
+            year = year
+          )
+      })
+  })
+
+# need to sample the pairs to get somethign I can actually work with.
+pairs_sample <- pairs_df %>%
+  slice_sample(n = 100000)
+
+
+
+```
+
+Some exploratory plots for starters
+
+```{r plot1}
+
+pairs_sample |> 
+  ggplot(aes(x = euclid_dist, y = lcd)) +
+  geom_point(alpha = 0.01, shape = 16) +
+  theme_pubr()
+
+```
+
+```{r plot2}
+pairs_sample |> 
+  ggplot(aes(x = log(euclid_dist+1), y = log(lcd+1))) +
+  geom_point(alpha = 0.01, shape = 16) +
+  theme_pubr()
+
+```
+
+there seems to be a phenomenon, that at greater distances LCD can do between, which makes sense, there are more options RE routes the further you have to do, so more room to optimize.
+
+# So, can we call this linear and be done with it?
+
+Maybe I can just take the ratio of the two and use that to deflate the lcd estimates before PC calculation?
+
+```{r factor calc}
+# cana  simple bit of linear algebra save the day sort this? coudl be good enough!
+pairs_sample$lcd_factor <- pairs_sample$lcd/pairs_sample$euclid_dist
+
+```
+
+importantly, what does that ratio look like over the range of distances
+
+```{r plot3}
+pairs_sample |> 
+  ggplot(aes(x = euclid_dist, y = lcd_factor)) +
+  geom_point(alpha = 0.01, shape = 16) +
+  theme_pubr()
+
+```
+
+Looks more than good enough for this old pirate. Statistical tests are just tests of power anyway....
+
+Lets have a look at the residuals around that mean
+
+```{r rediduals-aroudnnull-mod}
+mod0 <- lm(lcd_factor ~ 1, data = pairs_sample)
+
+# histogram the residuals
+hist(residuals(mod0), breaks = 100, main = "Residuals of lcd_factor ~ 1", xlab = "Residuals")
+
+
+```
+If you can show me ecological data taht is more Gausian-distribyuted, I can show you a lier!
+
+And the magic number is.... `r summary(mod0)$coefficients[1,1]` which is the mean of the lcd_factor across all pairs.
+
+
+But, I suppose we should try fitting some competing models... not that Ill do what they say, cuz its lookin like linear is close enough for jazz.
+
+some models, some linear, some gams, logs and stuff
+
+```{r tests}
+
+#plot(pairs_sample$prob_connect_euclid~ pairs_sample$euclid_dist)
+# its the kernal, good, it should be!
+
+library(mgcv)
+
+mod0 <- lm(lcd_factor ~ 1, data = pairs_sample)
+mod1 <- lm(lcd_factor ~ euclid_dist, data = pairs_sample)
+mod1.1 <- lm(log(lcd_factor+1) ~ log(euclid_dist+1), data = pairs_sample)
+mod2 <- gam(lcd_factor ~ s(euclid_dist), data = pairs_sample)
+mod3 <- gam(lcd_factor ~ s(log(euclid_dist+1)), data = pairs_sample)
+mod4 <- gam(log(lcd_factor+1) ~ s(euclid_dist), data = pairs_sample)
+mod5 <- gam(log(lcd_factor+1) ~ s(log(euclid_dist+1)), data = pairs_sample)
+mod6 <- glm(log(lcd_factor+1) ~ log(euclid_dist+1), data = pairs_sample)
+
+
+AIC(mod0,mod1, mod1.1, mod2, mod3, mod4, mod5, mod6)
+
+
+```
+
+Well.... i mean, looks like loggin both is the "right" answer.. bit lame though... and... WHAT IF!!! I exclude all data that is like \> 2km and rund it again, sure thats where the main driving force is gonna be anyway
+
+```{r}
+
+short_range_pairs <- pairs_sample |> 
+  filter(euclid_dist < 2000)
+
+mod1 <- lm(lcd_factor ~ euclid_dist, data = short_range_pairs)
+mod1.1 <- lm(log(lcd_factor+1) ~ log(euclid_dist+1), data = short_range_pairs)
+mod2 <- gam(lcd_factor ~ s(euclid_dist), data = short_range_pairs)
+mod3 <- gam(lcd_factor ~ s(log(euclid_dist+1)), data = short_range_pairs)
+mod4 <- gam(log(lcd_factor+1) ~ s(euclid_dist), data = short_range_pairs)
+mod5 <- gam(log(lcd_factor+1) ~ s(log(euclid_dist+1)), data = short_range_pairs)
+mod6 <- glm(log(lcd_factor+1) ~ log(euclid_dist+1), data = short_range_pairs)
+
+
+AIC(mod1, mod1.1, mod2, mod3, mod4, mod5, mod6)
+
+
+```
+
+ok, egg on my face I geuss...
+
+is this really all that important though...
+
+some of those plots again now....
+
+```{r}
+short_range_pairs |> 
+  ggplot(aes(x = euclid_dist, y = lcd)) +
+  geom_point(alpha = 0.1, shape = 16) +
+  theme_pubr()
+
+```
+
+
+```{r}
+short_range_pairs |> 
+  ggplot(aes(x = log(euclid_dist+1), y = log(lcd+1))) +
+  geom_point(alpha = 0.1, shape = 16) +
+  theme_pubr()
+
+```
+
+```{r}
+short_range_pairs |> 
+  ggplot(aes(x = euclid_dist, y = lcd_factor )) +
+  geom_point(alpha = 0.1, shape = 16) +
+  theme_pubr()
+```
+
+
+```{r}
+short_range_pairs |> 
+  ggplot(aes(x = log(euclid_dist+1), y = log(lcd_factor+1) )) +
+  geom_point(alpha = 0.1, shape = 16) +
+  theme_pubr()
+```
+Im sorry mate, you cant tell me thats a better relationship, thats just nuts. Were taking a straight up lm and thats that!
+
+
+
+
+
+
+
+oh yeah, "methods": informal.

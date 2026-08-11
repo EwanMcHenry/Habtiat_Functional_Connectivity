@@ -1,0 +1,210 @@
+---
+title: "Landscape Nature Recovery metric"
+author: "Ewan McHenry"
+format: html
+editor: visual
+---
+
+# Landscape-level Metric through time
+
+```{r libraries}
+# load libraries and functions - read subscript 01 ----
+source("subparts of calculation\\sub00- loading libraries and functions.R")
+
+```
+
+```{r config}
+source("subparts of calculation\\sub01 - configuration.R") # configureation file
+
+```
+
+```{r load-data}
+load(paste0(
+  func.conect.path,
+  "\\analysis outputs\\",
+  "all_treescapes_all_years_lcmres", constants$lcm.res,
+  "\\", paste(years.considered, collapse = "-"), "_scapes_",
+  paste(substr(pulling_landscapes, 1, 2), collapse = "-"),
+  ".RData"
+))
+
+
+# add a col for realtive to 1st year at 100 for each landscape
+all_landscape_summary <- 
+  all_landscape_summary %>%
+  group_by(name) %>%
+  mutate(lcd.ECA_relative_to_first_year = (lcd.ECA / lcd.ECA[year == min(year)]) * 100,
+         euclid.ECA_relative_to_first_year = (euclid.ECA / euclid.ECA[year == min(year)]) * 100) %>%
+  ungroup()  
+    
+
+
+```
+```{r function-plotting-time-serise}
+plot_landscape_metric <- function(data,
+                                  metric,
+                                  relative = FALSE,
+                                  y_label = NULL,
+                                  title = NULL,
+                                  reference_line = NULL,
+                                  lower_mult = 0.9,
+                                  upper_mult = 1.1) {
+  
+  # Construct column name for relative metrics
+  value_col <- if (relative) {
+    paste0(metric, "_relative_to_first_year")
+  } else {
+    metric
+  }
+  
+  # Default labels
+  if (is.null(y_label)) {
+    y_label <- if (relative) {
+      paste0(metric, " relative to first year (%)")
+    } else {
+      metric
+    }
+  }
+  
+  if (is.null(title)) {
+    title <- if (relative) {
+      paste0("Change in ", metric,
+             " relative to first year by landscape")
+    } else {
+      paste0(metric, " by landscape")
+    }
+  }
+  
+  # Default reference line for relative metrics
+  if (is.null(reference_line) && relative) {
+    reference_line <- 100
+  }
+  
+  y <- data[[value_col]]
+  
+  p <- data |>
+    ggplot(aes(x = year, y = .data[[value_col]], color = name)) +
+    geom_line() +
+    geom_point()
+  
+  if (!is.null(reference_line)) {
+    p <- p +
+      geom_hline(
+        yintercept = reference_line,
+        linetype = "dashed"
+      )
+  }
+  
+  p +
+    scale_y_continuous(
+      limits = c(
+        min(lower_mult * y, na.rm = TRUE),
+        max(upper_mult * y, na.rm = TRUE)
+      ),
+      breaks = pretty_breaks()
+    ) +
+    labs(
+      title = title,
+      x = "Year",
+      y = y_label
+    ) +
+    theme_pubr()
+}
+```
+
+
+## Relative change
+
+```{r creae_relative_cahnge}
+# add a col for realtive to 1st year at 100 for each landscape
+all_landscape_summary <- 
+  all_landscape_summary %>%
+  group_by(name) %>%
+  mutate(lcd.ECA_relative_to_first_year = (lcd.ECA / lcd.ECA[year == min(year)]) * 100,
+         euclid.ECA_relative_to_first_year = (euclid.ECA / euclid.ECA[year == min(year)]) * 100) %>%
+  ungroup()  
+
+
+```
+
+::::: panel-tabset
+## LCD ECA
+
+::: panel-tabset
+## Relative ECA
+
+```{r}
+all_landscape_summary |> 
+  ggplot(aes(x = year, y = lcd.ECA_relative_to_first_year, color = name)) +
+  geom_line() +
+  geom_point() +
+  # horisontal line at 100
+  geom_hline(yintercept = 100, linetype = "dashed") +
+  scale_y_continuous(limits = c(min(0.9 *all_landscape_summary$lcd.ECA_relative_to_first_year, na.rm = TRUE), max(1.05*all_landscape_summary$lcd.ECA_relative_to_first_year, na.rm = TRUE)), breaks = pretty_breaks()) +
+  labs(title = "Change in LCD ECA relative to first year by landscape",
+       x = "Year",
+       y = "LCD ECA relative to first year (%)") +
+  theme_pubr()
+
+
+```
+
+## Absolute ECA
+
+```{r}
+all_landscape_summary |> 
+  ggplot(aes(x = year, y = lcd.ECA, color = name)) +
+  geom_line() +
+  geom_point() +
+  # horisontal line at 100
+  geom_hline(yintercept = 100, linetype = "dashed") +
+  scale_y_continuous(limits = c(min(0.9 *all_landscape_summary$lcd.ECA, na.rm = TRUE), max(1.05*all_landscape_summary$lcd.ECA, na.rm = TRUE)), breaks = pretty_breaks()) +
+  labs(title = "LCD ECA by landscape",
+       x = "Year",
+       y = "LCD ECA (ha)") +
+  theme_pubr()
+
+
+
+```
+:::
+
+## Euclidean ECA
+
+::: panel-tabset
+## Relative ECA
+
+```{r}
+all_landscape_summary |> 
+  ggplot(aes(x = year, y = euclid.ECA_relative_to_first_year, color = name)) +
+  geom_line() +
+  geom_point() +
+  geom_hline(yintercept = 100, linetype = "dashed") +
+  scale_y_continuous(limits = c(min(0.9 *all_landscape_summary$euclid.ECA_relative_to_first_year, na.rm = TRUE), max(1.1*all_landscape_summary$euclid.ECA_relative_to_first_year, na.rm = TRUE)), breaks = pretty_breaks()) +
+  labs(title = "Change in Euclidean ECA relative to first year by landscape",
+       x = "Year",
+       y = "Euclidean ECA relative to first year (%)") +
+  theme_pubr()
+
+```
+
+## Absolute ECA
+
+```{r}
+all_landscape_summary |> 
+  ggplot(aes(x = year, y = euclid.ECA, color = name)) +
+  geom_line() +
+  geom_point() +
+  geom_hline(yintercept = 100, linetype = "dashed") +
+  scale_y_continuous(limits = c(min(0.9 *all_landscape_summary$euclid.ECA, na.rm = TRUE), max(1.1*all_landscape_summary$euclid.ECA, na.rm = TRUE)), breaks = pretty_breaks()) +
+  labs(title = "Euclidean ECA by landscape",
+       x = "Year",
+       y = "Euclidean ECA (ha)") +
+  theme_pubr()
+
+```
+:::
+:::::
+
+# Habitat cover
+
