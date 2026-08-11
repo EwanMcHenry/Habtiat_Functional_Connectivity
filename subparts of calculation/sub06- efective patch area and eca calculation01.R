@@ -41,7 +41,7 @@ candidate_pairs = candidate_pairs %>%
   rename(effective_patch_area_ha_to = effective_patch_area_ha)
 
 ## probability of connection ----
-candidate_pairs$prob_connect_lcd <-  exp(-constants$alpha * (candidate_pairs$lcd/construction$magic.lcd.refactoror ))
+candidate_pairs$prob_connect_lcd <-  exp(-constants$alpha * (candidate_pairs$lcd/constants$magic.lcd.refactoror ))
 candidate_pairs$prob_connect_euclid <-  exp(-constants$alpha * candidate_pairs$euclid_dist)
 
 ## ECA value of each pair ----
