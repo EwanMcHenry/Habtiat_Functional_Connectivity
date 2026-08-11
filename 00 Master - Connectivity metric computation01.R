@@ -1,11 +1,11 @@
 # Ewan McHenry
-##------ Fri Jan 21 15:50:05 2022 ------##
+## ------ Fri Jan 21 15:50:05 2022 ------##
 
 # development of functional connectivity metric
 #  note that this wont work across GB & NI - need to be done seperate if bioth within same landscape
-# 
-##------ Fri Feb 25 09:19:50 2022 ------##
-timestart = Sys.time()
+#
+## ------ Fri Feb 25 09:19:50 2022 ------##
+timestart <- Sys.time()
 
 # load libraries and functions - read subscript 01 ----
 source("subparts of calculation\\sub00- loading libraries and functions.R")
@@ -22,13 +22,12 @@ source("subparts of calculation\\sub02- load data01.R")
 source("subparts of calculation\\sub02.1 - curate patch_agnostic.R")
 
 # set up loop for multiple years and landscapes ----
-this.ts.num = 1
-this.year = years.considered[1]
-this.ts.for.loop = this.tss[this.ts.num]
+this.ts.num <- 1
+this.year <- years.considered[1]
+this.ts.for.loop <- this.tss[this.ts.num]
 
 # loop 1
-for(this.ts.num in 1: length(this.tss)){
-
+for (this.ts.num in seq_along(this.tss)) {
   # read subscript 03 - data curation ----
   ## make folder for this landscape's rdata
   ## curate costs and edge effects, scaling etc
@@ -37,78 +36,89 @@ for(this.ts.num in 1: length(this.tss)){
   ### lcm from 90 and 19
   ### awi
   source(paste0(sub.code.path, "\\sub03- data curation01.R"))
-  
-  for(this.year in years.considered){
-    dir.create(paste0(func.conect.path, 
-                      "\\analysis outputs\\", this.tss[this.ts.num],"\\", this.year))
-    dir.create(paste0(func.conect.path, 
-                      "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\lcmres", constants$lcm.res))
-    
-    landscape_stats[[this.tss[this.ts.num]]][[this.year]] <- list()
-    
+
+  for (this.year in years.considered) {
+    dir.create(paste0(
+      func.conect.path,
+      "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year
+    ))
+    dir.create(paste0(
+      func.conect.path,
+      "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\lcmres", constants$lcm.res
+    ))
+
     ## load curated data ----
     source(paste0(sub.code.path, "\\sub03.01 - lcm data curation01.R"))
-    
+
     # folder for this year for this landscape
-    
-# read subscript 04 - defining patch attributes ----
-## define patches - Broadleaf (or conifer in >50% native NWSS) cells contiguous or within small buffer (buffer.for.patchid x 2) 
-### polygonise and intersect with grid
-### area and awi area of clumps, patches and patch fragments within each hex
-## negative edge effects
-### polygonise lcm, buffer by edge effect, dissolve, and find area of edge and awi edge in each hex-patch fragment
-## patch centroids
 
-source(paste0(sub.code.path, "\\sub04- patchwork01.R"))
+    # read subscript 04 - defining patch attributes ----
+    ## define patches - Broadleaf (or conifer in >50% native NWSS) cells contiguous or within small buffer (buffer.for.patchid x 2)
+    ### polygonise and intersect with grid
+    ### area and awi area of clumps, patches and patch fragments within each hex
+    ## negative edge effects
+    ### polygonise lcm, buffer by edge effect, dissolve, and find area of edge and awi edge in each hex-patch fragment
+    ## patch centroids
 
-  }}
+    source(paste0(sub.code.path, "\\sub04- patchwork01.R"))
+  }
+}
 
 # savepoint/checkpoint - next loop takes a bit, so break for a checkpoint.
 
-for(this.ts.num in 1:length(this.tss)){#: length(this.tss)]){
-  for(this.year in years.considered){
-    this.ts.for.loop <- this.tss[this.ts.num]
-    print(this.ts.for.loop)
-
-# read subscript 05 - dispersal cost between patches ----
-## count ncells of within each hex of: broadleaf, land not coastal and all cells
-## make cost layer using lcm and dispersal dataframe
-## mean and median landscape cost per hex
-## euclidian distance between patch centroids
-## warning if row names dont equal ID, will mess up indexing
-## least cost distance and rescale
-source(paste0(sub.code.path, "\\sub05- matric and patch isolation01.R"))
-
+for (this.ts.num in 1:length(this.tss)) { # : length(this.tss)]){
+  this.ts.for.loop <- this.tss[this.ts.num]
+  print(this.ts.for.loop)
+  for (this.year in years.considered) {
+    # read subscript 05 - dispersal cost between patches ----
+    ## count ncells of within each hex of: broadleaf, land not coastal and all cells
+    ## make cost layer using lcm and dispersal dataframe
+    ## mean and median landscape cost per hex
+    ## euclidian distance between patch centroids
+    ## warning if row names dont equal ID, will mess up indexing
+    ## least cost distance and rescale
+    source(paste0(sub.code.path, "\\sub05- matric and patch isolation01.R"))
   } # end year loop
 } # end landscape loop
 
 
-for(this.ts.for.loop in this.tss){#: length(this.tss)]){
-  for(this.year in years.considered){
-    this.ts.num = which(this.tss == this.ts.for.loop) # this bit should maybe automatically chosen in for loop in future
-# read subscript 06 - effective area and eca calculation ----
-## effective patch area, usign edge and awi area
-## ECA calculation per patch, per hex and per landscape
-### hex == contribution of all patches in hex to all patches in buffered landscape
-#### standardised to patch area of non-coastal land
-### patch = contribution to all in buffered landscape
-### landscape = to all in buffered
-### euclidian, least cost and least cost scaled (so that mean cost == 1)
-source(paste0(sub.code.path, "\\sub06- efective patch area and eca calculation01.R"))
+for (this.ts.for.loop in this.tss) { # : length(this.tss)]){
+  for (this.year in years.considered) {
+    this.ts.num <- which(this.tss == this.ts.for.loop) # this bit should maybe automatically chosen in for loop in future
+    # read subscript 06 - effective area and eca calculation ----
+    ## effective patch area, usign edge and awi area
+    ## ECA calculation per patch, per hex and per landscape
+    ### hex == contribution of all patches in hex to all patches in buffered landscape
+    #### standardised to patch area of non-coastal land
+    ### patch = contribution to all in buffered landscape
+    ### landscape = to all in buffered
+    ### euclidian, least cost and least cost scaled (so that mean cost == 1)
+    source(paste0(sub.code.path, "\\sub06- efective patch area and eca calculation01.R"))
 
-# end landscape-years loop
-print(paste(this.ts.for.loop, this.year, "done"))
+    # end landscape-years loop
+    print(paste(this.ts.for.loop, this.year, "done"))
   } # end year loop
-  } # end landscape loop
+} # end landscape loop
 # time taken ----
 
-timedone = Sys.time()
-timetaken = timedone - timestart
+timedone <- Sys.time()
+timetaken <- timedone - timestart
+
+
+this.ts.num <- 1
+for (this.ts.num in 1:length(this.tss)) { # : length(this.tss)]){
+  source("subparts of calculation/sub07- pulling together outputs across years.R")
+}
+
+source("subparts of calculation/sub08- pull outputs across landscapes.R")
 
 
 ###############################################################################
 ###############################################################################
 
-source("01 Presenting stats, change and map plots01.R")
-source("leaflet plots01.R")
-
+this.ts.for.loop <- this.tss[1]
+for (this.ts.for.loop in this.tss) { # : length(this.tss)]){
+  this.ts.num <- which(this.tss == this.ts.for.loop) # this bit should maybe automatically chosen in for loop in future
+  source("01 Presenting stats, change and map plots01.R")
+  source("leaflet plots01.R")
+}
