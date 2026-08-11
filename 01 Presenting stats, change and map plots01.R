@@ -26,10 +26,24 @@ round_to_for_legend_change = 10
 n_breaks_in_legend = 4 # number of breaks in legend
 n_breaks_in_legend_change = 5
 
-# Configuration ----
-## SET MODEL CONSTANTS ----
 
 # LOAD and store all landscape and hexgrid eca info: landscape.metrics.all all.hexgrids ----
+this.year <-  years.considered[1]
+for (this.year in years.considered){
+    load(paste0(func.conect.path, 
+                "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\lcmres", constants$lcm.res, 
+                "\\06_r_funcconnect_EffectiveAreas_ECAobs_.RData"))
+    
+    landscape.metrics.all[(this.ts.num-1)*length(years.considered)+which(years.considered == this.year),] = landscape.metrics
+    
+    # hexgrid with stuff 
+    all.hexgrids[[(this.ts.num-1)*length(years.considered)+which(years.considered == this.year)]] = list(name = this.tss[this.ts.num], 
+                                                                                                          year = this.year,
+                                                                                                          hexgrid = ts.hexgrid[,hex.colnames],
+                                                                                                          height.width.ratio = as.numeric((st_bbox(ts.hexgrid)$ymax- st_bbox(ts.hexgrid)$ymin)/(st_bbox(ts.hexgrid)$xmax- st_bbox(ts.hexgrid)$xmin)),
+                                                                                                          bl.patch.hexid.centroids = bl.patch.hexid.centroids)
+  }
+}
 #  make objects to store in
 load(paste0(func.conect.path, 
             "\\analysis outputs\\", this.tss[this.ts.num], "\\", this.year, "\\lcmres", constants$lcm.res, 
