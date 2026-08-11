@@ -14,6 +14,9 @@ source("subparts of calculation\\sub00- loading libraries and functions.R")
 ```
 
 ```{r config}
+#| output: false
+#| message: false
+#| 
 source("subparts of calculation\\sub01 - configuration.R") # configureation file
 
 ```
@@ -134,17 +137,13 @@ all_landscape_summary <-
 ## Relative ECA
 
 ```{r}
-all_landscape_summary |> 
-  ggplot(aes(x = year, y = lcd.ECA_relative_to_first_year, color = name)) +
-  geom_line() +
-  geom_point() +
-  # horisontal line at 100
-  geom_hline(yintercept = 100, linetype = "dashed") +
-  scale_y_continuous(limits = c(min(0.9 *all_landscape_summary$lcd.ECA_relative_to_first_year, na.rm = TRUE), max(1.05*all_landscape_summary$lcd.ECA_relative_to_first_year, na.rm = TRUE)), breaks = pretty_breaks()) +
-  labs(title = "Change in LCD ECA relative to first year by landscape",
-       x = "Year",
-       y = "LCD ECA relative to first year (%)") +
-  theme_pubr()
+plot_landscape_metric(
+  all_landscape_summary,
+  metric = "lcd.ECA",
+  relative = TRUE,
+  y_label = "LCD ECA relative to first year (%)"
+)
+
 
 
 ```
@@ -165,6 +164,13 @@ all_landscape_summary |>
   theme_pubr()
 
 
+plot_landscape_metric(
+  all_landscape_summary,
+  metric = "lcd.ECA",
+  y_label = "LCD ECA (ha)",
+  lower_mult = 0.9,
+  upper_mult = 1.05
+)
 
 ```
 :::
@@ -175,32 +181,25 @@ all_landscape_summary |>
 ## Relative ECA
 
 ```{r}
-all_landscape_summary |> 
-  ggplot(aes(x = year, y = euclid.ECA_relative_to_first_year, color = name)) +
-  geom_line() +
-  geom_point() +
-  geom_hline(yintercept = 100, linetype = "dashed") +
-  scale_y_continuous(limits = c(min(0.9 *all_landscape_summary$euclid.ECA_relative_to_first_year, na.rm = TRUE), max(1.1*all_landscape_summary$euclid.ECA_relative_to_first_year, na.rm = TRUE)), breaks = pretty_breaks()) +
-  labs(title = "Change in Euclidean ECA relative to first year by landscape",
-       x = "Year",
-       y = "Euclidean ECA relative to first year (%)") +
-  theme_pubr()
+
+plot_landscape_metric(
+  all_landscape_summary,
+  metric = "euclid.ECA",
+  relative = TRUE,
+  y_label = "Euclidean ECA relative to first year (%)"
+)
+
 
 ```
 
 ## Absolute ECA
 
 ```{r}
-all_landscape_summary |> 
-  ggplot(aes(x = year, y = euclid.ECA, color = name)) +
-  geom_line() +
-  geom_point() +
-  geom_hline(yintercept = 100, linetype = "dashed") +
-  scale_y_continuous(limits = c(min(0.9 *all_landscape_summary$euclid.ECA, na.rm = TRUE), max(1.1*all_landscape_summary$euclid.ECA, na.rm = TRUE)), breaks = pretty_breaks()) +
-  labs(title = "Euclidean ECA by landscape",
-       x = "Year",
-       y = "Euclidean ECA (ha)") +
-  theme_pubr()
+plot_landscape_metric(
+  all_landscape_summary,
+  metric = "euclid.ECA",
+  y_label = "Euclidean ECA (ha)"
+)
 
 ```
 :::

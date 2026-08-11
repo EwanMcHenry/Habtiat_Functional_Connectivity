@@ -1,6 +1,6 @@
 project:
   type: website
-  
+
 website:
   title: "Nature Recovery Metric"
   search: true
@@ -12,7 +12,6 @@ website:
     style: docked
     search: true
     contents:
-
       - section: "Methods"
         contents:
           - Tuning in lcd refacteror.qmd
@@ -23,35 +22,36 @@ website:
 
 number-depth: 0
 
-
 format:
   html:
     toc: true
     toc-location: right
     toc-depth: 5
-    toc-float: true       # Optional: makes the table of contents float on the page
-    theme: sandstone # could go cosmo
+    toc-float: true
+    theme: sandstone
     lightbox: true
-    code-fold: true       # Enables folding
-    code-summary: "Show code"  # Optional: custom label on the fold button
-    fig-width: 6
-    fig-asp: 0.618
+    code-fold: true
+    code-summary: "Show code"
     reference-location: margin
     anchor-sections: true
-    embed-resources: TRUE
+    embed-resources: true
 
-editor: visual
-
-prefer-html: true
+fig-width: 10
+fig-dpi: 300
 
 execute:
   echo: false
   warning: false
+  cache: true
+
+editor: visual
+
+prefer-html: true
 
 bibliography: references.bib
 
 css: style.css
 
 comments:
-  hypothesis: 
+  hypothesis:
     theme: clean
