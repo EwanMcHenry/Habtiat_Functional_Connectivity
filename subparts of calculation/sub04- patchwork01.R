@@ -16,7 +16,6 @@ load(paste0(func.conect.path,
 
 # PATCH WORK ----
 
-landscape_stats[[this.tss[[this.ts.num]]]] <- list()
 
 ## id habitat - bl.landscape ----
 
@@ -147,13 +146,15 @@ edge.effecting_list <- lapply(classes, function(cl) {
 trouble_plot(edge.effecting_list[[2]], "edge effecting landscape - e.g arable")
 
 grow_class <- function(r, dist) {
-  print(global(r, c("min", "max"), na.rm = F))
-  print(dist)
+  if(troubleshooting){
+    print(global(r, c("min", "max"), na.rm = F))
+    print(dist)
+    }
   
   d <- terra::distance(r,target= 0) 
   trouble_plot(d, paste0("d", cl))
   
-  print(global(d, c("min", "max"), na.rm = TRUE))
+  # print(global(d, c("min", "max"), na.rm = TRUE))
   
   r_grown <- (d - as.numeric(constants$lcm.res)) <= dist # is the raster cell within the distance of effect of this class?  subtractign the res to ask does it enter that sq
   # trouble_plot(d, "distance to edge effecting class")
@@ -300,7 +301,7 @@ trouble_plot(patch_centroid_info, "patch_centroid_info_points")
 ### area of each lcm type
 ### area of habitat
 ### are of non-coastal lcm types
-coastal_water_lcm <- c(13, 15:19)
+# coastal_water_lcm <- c(13, 15:19)
 ### area of awi-core, awi-edge, nonawi-core, nonawi-edge 
 
 hex_summary <- cells %>%
@@ -310,7 +311,7 @@ hex_summary <- cells %>%
   dplyr::summarise(
     total_area = dplyr::n() * cell_area,
     habitat_area = sum(!is.na(patches)) * cell_area,
-    noncoastal_water_area = sum(!(lcm %in% coastal_water_lcm)) * cell_area,
+    noncoastal_water_area = sum(!(lcm %in% constants$coastal_water_lcm)) * cell_area,
     awi_edge_area = sum(suboptimal_edge_habitat == TRUE &
                      awi_hab == 1, na.rm = TRUE) * cell_area,
     nonawi_edge_area = sum(suboptimal_edge_habitat == TRUE &
@@ -338,7 +339,7 @@ lcm_summary <- cells %>%
   )
 
 non_coastal_land_cols <-  grep("^lcm_", names(ts.hexgrid), value = TRUE)
-non_coastal_land_cols <- non_coastal_land_cols[!non_coastal_land_cols %in% paste0("lcm_", coastal_water_lcm)]
+non_coastal_land_cols <- non_coastal_land_cols[!non_coastal_land_cols %in% paste0("lcm_", constants$coastal_water_lcm)]
 non_coastal_land_cols <- non_coastal_land_cols[non_coastal_land_cols != "lcm_NA"]
 
 ts.hexgrid <- ts.hexgrid %>%
@@ -404,5 +405,5 @@ rm(cells, cells2,lcm_summary ,hex_summary ,
    bl.buff,  r_stack,
    intensive.landscape)
 gc()
-print(paste(this.tss[this.ts.num], "Patch definition (script04) done"))
+print(paste(this.tss[this.ts.num], this.year, "Patch definition (script04) done"))
 # sort(sapply(ls(), function(x) object.size(get(x))), decreasing = TRUE)
