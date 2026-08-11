@@ -1,0 +1,57 @@
+project:
+  type: website
+  
+website:
+  title: "Nature Recovery Metric"
+  search: true
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+  sidebar:
+    style: docked
+    search: true
+    contents:
+
+      - section: "Methods"
+        contents:
+          - Tuning in lcd refacteror.qmd
+
+      - section: "Results"
+        contents:
+          - first summary of landscapes.qmd
+
+number-depth: 0
+
+
+format:
+  html:
+    toc: true
+    toc-location: right
+    toc-depth: 5
+    toc-float: true       # Optional: makes the table of contents float on the page
+    theme: sandstone # could go cosmo
+    lightbox: true
+    code-fold: true       # Enables folding
+    code-summary: "Show code"  # Optional: custom label on the fold button
+    fig-width: 6
+    fig-asp: 0.618
+    reference-location: margin
+    anchor-sections: true
+    embed-resources: TRUE
+
+editor: visual
+
+prefer-html: true
+
+execute:
+  echo: false
+  warning: false
+
+bibliography: references.bib
+
+css: style.css
+
+comments:
+  hypothesis: 
+    theme: clean
