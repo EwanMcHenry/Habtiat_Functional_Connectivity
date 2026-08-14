@@ -19,6 +19,8 @@ source("subparts of calculation\\sub00- loading libraries and functions.R")
 #| 
 source("subparts of calculation\\sub01 - configuration.R") # configureation file
 
+ts.pallette <- wt_palette[c(3, 5, 6, 8, 9, 11, 12, 13, 14)]
+
 ```
 
 ```{r load-data}
@@ -50,8 +52,8 @@ plot_landscape_metric <- function(data,
                                   y_label = NULL,
                                   title = NULL,
                                   reference_line = NULL,
-                                  lower_mult = 0.9,
-                                  upper_mult = 1.1) {
+                                  lower_mult = 0.95,
+                                  upper_mult = 1.05) {
   
   # Construct column name for relative metrics
   value_col <- if (relative) {
@@ -71,8 +73,10 @@ plot_landscape_metric <- function(data,
   
   if (is.null(title)) {
     title <- if (relative) {
-      paste0("Change in ", metric,
-             " relative to first year by landscape")
+      paste0(
+        "Change in ", metric,
+        " relative to first year by landscape"
+      )
     } else {
       paste0(metric, " by landscape")
     }
@@ -83,22 +87,22 @@ plot_landscape_metric <- function(data,
     reference_line <- 100
   }
   
+  # Get y values
   y <- data[[value_col]]
   
+  # Build main plot
   p <- data |>
-    ggplot(aes(x = year, y = .data[[value_col]], color = name)) +
-    geom_line() +
-    geom_point()
-  
-  if (!is.null(reference_line)) {
-    p <- p +
-      geom_hline(
-        yintercept = reference_line,
-        linetype = "dashed"
-      )
-  }
-  
-  p +
+    ggplot(aes(x = year, y = .data[[value_col]])) +
+    geom_line(
+      linewidth = 0.7,
+      aes(color = name)
+    ) +
+    geom_point(
+      size = 2,
+      shape = 21,
+      aes(fill = name),
+      color = "black"
+    ) +
     scale_y_continuous(
       limits = c(
         min(lower_mult * y, na.rm = TRUE),
@@ -106,16 +110,38 @@ plot_landscape_metric <- function(data,
       ),
       breaks = pretty_breaks()
     ) +
+    scale_color_manual(
+      name = NULL,
+      values = ts.pallette,
+      guide = guide_legend(nrow = 3)
+
+    ) +
+    scale_fill_manual(
+      name = NULL,
+      values = ts.pallette,
+      guide = "none"
+    ) +
     labs(
       title = title,
       x = "Year",
       y = y_label
     ) +
     theme_pubr()
+  
+  # Add reference line last
+  if (!is.null(reference_line)) {
+    p <- p +
+      geom_hline(
+        yintercept = reference_line,
+        linetype = "dashed",
+        linewidth = 0.7
+      )
+  }
+  
+  # Return plot
+  p
 }
 ```
-
-
 ## Relative change
 
 ```{r creae_relative_cahnge}
@@ -124,7 +150,8 @@ all_landscape_summary <-
   all_landscape_summary %>%
   group_by(name) %>%
   mutate(lcd.ECA_relative_to_first_year = (lcd.ECA / lcd.ECA[year == min(year)]) * 100,
-         euclid.ECA_relative_to_first_year = (euclid.ECA / euclid.ECA[year == min(year)]) * 100) %>%
+         euclid.ECA_relative_to_first_year = (euclid.ECA / euclid.ECA[year == min(year)]) * 100,
+         sum.patch.ha_relative_to_first_year = (sum.patch.ha / sum.patch.ha[year == min(year)]) * 100) %>%
   ungroup()  
 
 
@@ -136,13 +163,12 @@ all_landscape_summary <-
 ::: panel-tabset
 ## Relative ECA
 
-```{r}
+```{r p1.1.1-eca_rel}
 plot_landscape_metric(
   all_landscape_summary,
   metric = "lcd.ECA",
   relative = TRUE,
-  y_label = "LCD ECA relative to first year (%)"
-)
+  y_label = "LCD ECA relative to first year (%)")
 
 
 
@@ -150,20 +176,7 @@ plot_landscape_metric(
 
 ## Absolute ECA
 
-```{r}
-all_landscape_summary |> 
-  ggplot(aes(x = year, y = lcd.ECA, color = name)) +
-  geom_line() +
-  geom_point() +
-  # horisontal line at 100
-  geom_hline(yintercept = 100, linetype = "dashed") +
-  scale_y_continuous(limits = c(min(0.9 *all_landscape_summary$lcd.ECA, na.rm = TRUE), max(1.05*all_landscape_summary$lcd.ECA, na.rm = TRUE)), breaks = pretty_breaks()) +
-  labs(title = "LCD ECA by landscape",
-       x = "Year",
-       y = "LCD ECA (ha)") +
-  theme_pubr()
-
-
+```{r p1.1.2-eca_abs}
 plot_landscape_metric(
   all_landscape_summary,
   metric = "lcd.ECA",
@@ -180,7 +193,7 @@ plot_landscape_metric(
 ::: panel-tabset
 ## Relative ECA
 
-```{r}
+```{r p1.2.1-eca_rel}
 
 plot_landscape_metric(
   all_landscape_summary,
@@ -194,7 +207,7 @@ plot_landscape_metric(
 
 ## Absolute ECA
 
-```{r}
+```{r p1.2.2-eca_abs}
 plot_landscape_metric(
   all_landscape_summary,
   metric = "euclid.ECA",
@@ -205,5 +218,135 @@ plot_landscape_metric(
 :::
 :::::
 
+## ECA vs euclidean exploration
+
+I hypothesised that sometimes the change in LCD ECA wasnt the same as change in Euclidean ECA, so I wanted to explore that a bit more.
+
+First looking for a pattern in the actual measurement
+
+::: panel-tabset
+## Relative to year 1
+
+```{r p2.1-eca-euclid-lcd_rel}
+# scatter plot of lcd.ECA vs euclid.ECA for each landscape and year. Colour by treescape as before
+
+all_landscape_summary |> 
+  ggplot(aes(x = euclid.ECA_relative_to_first_year, y = lcd.ECA_relative_to_first_year, color = name)) +
+  geom_point(size = 2, aes(alpha = year))  +
+  # add a 1:1 line
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 0.7) +
+  scale_color_manual(
+    name = NULL,
+    values = ts.pallette,
+    guide = guide_legend(nrow = 3)
+  ) +
+  scale_alpha_continuous(
+  name = "Year",
+  range = c(0.3, 1),
+  breaks = c(
+    min(all_landscape_summary$year, na.rm = TRUE),
+    median(all_landscape_summary$year, na.rm = TRUE),
+    max(all_landscape_summary$year, na.rm = TRUE)
+  ),
+  guide = guide_legend(ncol = 1)) +
+labs(
+    title = "LCD ECA vs Euclidean ECA by landscape",
+    x = "Euclidean ECA (ha)",
+    y = "LCD ECA (ha)"
+  ) +
+  theme_pubr()
+
+
+```
+
+
+## Absolute
+
+```{r p2.1-eca-euclid-lcd_abs}
+
+all_landscape_summary |> 
+  ggplot(aes(x = euclid.ECA, y = lcd.ECA, color = name)) +
+  geom_point(size = 2, aes(alpha = year))  +
+  # add a 1:1 line
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", linewidth = 0.7) +
+  scale_color_manual(
+    name = NULL,
+    values = ts.pallette,
+    guide = guide_legend(nrow = 3)
+  ) +
+  scale_alpha_continuous(
+  name = "Year",
+  range = c(0.3, 1),
+  breaks = c(
+    min(all_landscape_summary$year, na.rm = TRUE),
+    median(all_landscape_summary$year, na.rm = TRUE),
+    max(all_landscape_summary$year, na.rm = TRUE)
+  ),
+  guide = guide_legend(ncol = 1)) +
+  labs(
+    title = "LCD ECA vs Euclidean ECA by landscape",
+    x = "Euclidean ECA (ha)",
+    y = "LCD ECA (ha)"
+  ) +
+  theme_pubr()
+
+
+
+```
+:::
+
+Relative - perhaps a bit confusing, important to remember everything is relative to 100 int eh first year. When ECA  decreases, it decreases more for LCD.
+
+
+Absolute - Not a perfect 1:1 relationship, the ECA increases more than the Euclidean ECA. 
+- Makes sense that greater distance allows for a more efficient connectivity calculation: there are more options for an optimum route.
+- Highlights the importance to compare rates of change, rather than absolute values.
+
+The relationship appears to be somewhat different
+
 # Habitat cover
 
+::: panel-tabset
+## Relative to year 1
+
+```{r p3.1-habitat-cover-timeserise}
+plot_landscape_metric(
+  all_landscape_summary,
+  metric = "sum.patch.ha",
+  relative = TRUE,
+  y_label = "Habitat area relative to first year (%)"
+)
+
+```
+
+## Absolute
+
+```{r p3.2-habitat-cover-timeserise}
+
+plot_landscape_metric(
+  all_landscape_summary,
+  metric = "sum.patch.ha",
+  y_label = "Habitat area (ha)"
+)
+```
+:::
+
+The uptick in 2024 is a little bit suspect, and I worry if it is true, or related to error in the LCM.
+
+Table of rate of annual change by treescape.
+```{r rate-of-change-table}
+
+all_landscape_summary |> 
+  group_by(name) |> 
+  mutate(
+    lcd.ECA_change_rate = lcd.ECA/lag(lcd.ECA),
+    euclid.ECA_change_rate = euclid.ECA/lag(euclid.ECA),
+    sum.patch.ha_change_rate = sum.patch.ha/lag(sum.patch.ha)
+  ) |> 
+  #col for treescape and each year, habitat change rate
+  select(name, year, sum.patch.ha_change_rate) |>
+  pivot_wider(names_from = year, values_from = sum.patch.ha_change_rate) |> 
+  kableExtra::kbl(caption = "Rate of change in habitat area by treescape and year")
+
+    
+```
