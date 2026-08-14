@@ -63,11 +63,12 @@
       
       values <- values[!is.na(values)]
       
-      if (length(values) == 0) {return(c(mean   = NA_real_, median = NA_real_, p70    = NA_real_))
+      if (length(values) == 0) {return(c(mean   = NA_real_, median = NA_real_, p30 = NA_real_, p70    = NA_real_))
       }
       
       c(mean   = mean(values, na.rm = TRUE),
         median = median(values, na.rm = TRUE),
+        p30    = quantile(values, 0.30, names = FALSE, na.rm = TRUE),
         p70    = quantile(values, 0.70, names = FALSE, na.rm = TRUE)
       )
     }
@@ -76,6 +77,7 @@
   
   ts.hexgrid$ecolog.cost.not.sea_mean <- cost_stats["mean", ] * constants$cost.scale.factor
   ts.hexgrid$ecolog.cost.not.sea_median <- cost_stats["median", ] * constants$cost.scale.factor
+  ts.hexgrid$ecolog.cost.not.sea_p30 <- cost_stats["p30", ] * constants$cost.scale.factor
   ts.hexgrid$ecolog.cost.not.sea_p70 <- cost_stats["p70", ] * constants$cost.scale.factor
   # ts.hexgrid$ecolog.cost.not.sea_median = exact_extract(not.sea.cost, ts.hexgrid, "median" )*constants$cost.scale.factor
   
