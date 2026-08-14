@@ -174,17 +174,44 @@ dispers.costs$scaled.ecolog.cost <-  dispers.costs$ecolog.cost/constants$cost.sc
 # for part of the shapefile output for sharing
 ## note theses need to match the names in hexgrid and DO NOT include gridid, geometry etc
 ## change is measured in each of these... so make sure that makes sense
-important.output.cols <- c("hex.standardised.leastcost.eca", 
-  "hex.standardised.euclid.eca",
-  "n.clumps",
-  "tot.patch.ha",
-  "tot.aw.patch.ha",
-  "tot.edge.patch.ha",
-  "tot.awedge.patch.ha",
-  "lcm.ncells",
-  "landnotcoastal.ncells")
+
+unchanging_impotant_cols <-  c(
+  "grid_id"
+)
+important.output.cols <- c("habitat_area", 
+                           "sum.patch.area.effective.ha",
+                           "sum.patch.ha",
+                           
+                           "n.clumps",
+                           "med.patch.ha",
+                           "mean.patch.ha",
+                           "largest_patch_ha",
+                           "largest_patch_quality_weighted_ha",
+                           
+                           "noncoastal_water_area",
+                           
+                           "sum.aw.patch.ha",
+                           "sum.edge.patch.ha",
+                           "sum.awi_edge.ha",
+                           "awi_edge_area",
+                           "nonawi_edge_area",
+                           "awi_core_area",
+                           "nonawi_core_area",
+                           
+                           "hex.lcd.eca",
+                           "hex.standardised.lcd.eca",
+                           "hex.euclid.eca",
+                           "hex.standardised.euclid.eca",
+                           "hex.lcd.eca.contrib",
+                           "hex.euclid.eca.contrib")
+
+important.cols_partial_name <- c(
+  "ecolog.cost.not.sea"
+)
 
 # plot configuration
+
+ts.pallette <- wt_palette[c(3, 5, 6, 8, 9, 11, 12, 13, 14)]
 
 leaflet_config = list()
 leaflet_config$conect_fillOpacity = 0.5
