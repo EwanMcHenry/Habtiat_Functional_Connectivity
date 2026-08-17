@@ -205,10 +205,10 @@ ts.hexgrid <- ts.hexgrid %>%
 
 
 #standardise by terrestrial area of hex - i.e. this is eca if hex was complete  - max number of cells in any hex/ number of non-coastal land cells in this hex
-ts.hexgrid$hex.standardised.lcd.eca = ts.hexgrid$hex.lcd.eca *(max(ts.hexgrid$non_coastal_land_area)/ts.hexgrid$non_coastal_land_area)
+ts.hexgrid$hex.standardised.lcd.eca = ts.hexgrid$hex.lcd.eca *(max(ts.hexgrid$noncoastal_water_area)/ts.hexgrid$noncoastal_water_area)
 ts.hexgrid$hex.standardised.lcd.eca[is.na(ts.hexgrid$hex.standardised.lcd.eca)] = 0
 
-ts.hexgrid$hex.standardised.euclid.eca = ts.hexgrid$hex.euclid.eca *(max(ts.hexgrid$non_coastal_land_area)/ts.hexgrid$non_coastal_land_area)
+ts.hexgrid$hex.standardised.euclid.eca = ts.hexgrid$hex.euclid.eca *(max(ts.hexgrid$noncoastal_water_area)/ts.hexgrid$noncoastal_water_area)
 ts.hexgrid$hex.standardised.euclid.eca[is.na(ts.hexgrid$hex.standardised.euclid.eca)] = 0
 
 
