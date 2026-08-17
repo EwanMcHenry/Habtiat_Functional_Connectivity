@@ -18,9 +18,6 @@ source("subparts of calculation\\sub00- loading libraries and functions.R")
 #| message: false
 #| 
 source("subparts of calculation\\sub01 - configuration.R") # configureation file
-
-ts.pallette <- wt_palette[c(3, 5, 6, 8, 9, 11, 12, 13, 14)]
-
 ```
 
 ```{r load-data}
@@ -32,7 +29,9 @@ load(paste0(
   paste(substr(pulling_landscapes, 1, 2), collapse = "-"),
   ".RData"
 ))
+```
 
+```{r curate-data}
 
 # add a col for realtive to 1st year at 100 for each landscape
 all_landscape_summary <- 
@@ -40,6 +39,12 @@ all_landscape_summary <-
   group_by(name) %>%
   mutate(lcd.ECA_relative_to_first_year = (lcd.ECA / lcd.ECA[year == min(year)]) * 100,
          euclid.ECA_relative_to_first_year = (euclid.ECA / euclid.ECA[year == min(year)]) * 100) %>%
+  ungroup() %>%
+  # add a col for realtive to 1st year at 100 for each landscape
+  group_by(name) %>%
+  mutate(lcd.ECA_relative_to_first_year = (lcd.ECA / lcd.ECA[year == min(year)]) * 100,
+         euclid.ECA_relative_to_first_year = (euclid.ECA / euclid.ECA[year == min(year)]) * 100,
+         sum.patch.ha_relative_to_first_year = (sum.patch.ha / sum.patch.ha[year == min(year)]) * 100) %>%
   ungroup()  
     
 
@@ -141,20 +146,6 @@ plot_landscape_metric <- function(data,
   # Return plot
   p
 }
-```
-## Relative change
-
-```{r creae_relative_cahnge}
-# add a col for realtive to 1st year at 100 for each landscape
-all_landscape_summary <- 
-  all_landscape_summary %>%
-  group_by(name) %>%
-  mutate(lcd.ECA_relative_to_first_year = (lcd.ECA / lcd.ECA[year == min(year)]) * 100,
-         euclid.ECA_relative_to_first_year = (euclid.ECA / euclid.ECA[year == min(year)]) * 100,
-         sum.patch.ha_relative_to_first_year = (sum.patch.ha / sum.patch.ha[year == min(year)]) * 100) %>%
-  ungroup()  
-
-
 ```
 
 ::::: panel-tabset
