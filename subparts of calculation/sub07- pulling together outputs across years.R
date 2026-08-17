@@ -8,7 +8,7 @@ multi_year_source_patch_centroid_info <- list()
 
 
 
-
+y = 1
 for (y in seq_along(years.considered)) {
   this.year <- years.considered[y]
   
@@ -17,13 +17,23 @@ for (y in seq_along(years.considered)) {
               "\\lcmres", constants$lcm.res, 
               "\\06_r_funcconnect_EffectiveAreas_ECAobs_.RData"))
   
-  multi_year_landscape_summary[[y]] <- 
+  
+  year_name <- as.character(this.year)
+  
+  multi_year_landscape_summary[[year_name]] <- 
     landscape_stats[[this.tss[this.ts.num]]][[this.year]]$landscape.summary
   
-  multi_year_ts.hexgrid[[y]] <- landscape_stats[[this.tss[this.ts.num]]][[this.year]]$ts.hexgrid
-  multi_year_source_patch_centroid_info[[y]] <- landscape_stats[[this.tss[this.ts.num]]][[this.year]]$source_patch_centroid_info
-  multi_year_candidate_pairs[[y]] <- landscape_stats[[this.tss[this.ts.num]]][[this.year]]$candidate_pairs
-  model_params <- landscape_stats[[this.tss[this.ts.num]]][[this.year]]$model_params
+  multi_year_ts.hexgrid[[year_name]] <- 
+    landscape_stats[[this.tss[this.ts.num]]][[this.year]]$ts.hexgrid
+  
+  multi_year_source_patch_centroid_info[[year_name]] <- 
+    landscape_stats[[this.tss[this.ts.num]]][[this.year]]$source_patch_centroid_info
+  
+  multi_year_candidate_pairs[[year_name]] <- 
+    landscape_stats[[this.tss[this.ts.num]]][[this.year]]$candidate_pairs
+  
+  model_params <- 
+    landscape_stats[[this.tss[this.ts.num]]][[this.year]]$model_params
 }
 
 multi_year_landscape_summary <- do.call(rbind, multi_year_landscape_summary)
