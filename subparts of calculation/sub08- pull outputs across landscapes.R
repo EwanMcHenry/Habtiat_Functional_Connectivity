@@ -7,7 +7,11 @@ all_candidate_pairs <- list()
 all_source_patch_centroid_info <- list()
 all_model_params <- list()
 
-for (ts in pulling_landscapes) {
+
+this.ts.num <- 1
+
+for (this.ts.num in 1:length(pulling_landscapes)) {
+  ts <- pulling_landscapes[this.ts.num]
   load(
     paste0(
       func.conect.path,
