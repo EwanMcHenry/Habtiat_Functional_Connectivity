@@ -2,7 +2,7 @@ project:
   type: website
 
 website:
-  title: "Nature Recovery Metric"
+  title: "Landscape Nature Recovery Metric"
   search: true
   navbar:
     left:
