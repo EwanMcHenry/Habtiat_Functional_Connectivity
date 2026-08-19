@@ -54,18 +54,43 @@ candidate_pairs$eca_value_ha_euclidean = sqrt(candidate_pairs$eca_euclidean_cont
 ## sum patch contributions ----
 ### only the "from" which considers the contribution from patches outside the focal area, within the buffer
 
+
 source_patch_centroid_info <- patch_centroid_info %>%
   filter(focal_landscape == 1) %>%
-  # left_join(
-  #   candidate_pairs %>% group_by(uid_to) %>% 
-  #     summarise(eca_lcd_contribution_to = sum(eca_lcd_contribution, na.rm = TRUE),
-  #               eca_euclidean_contribution_to = sum(eca_euclidean_contribution, na.rm = TRUE)),
-  #   by = c("uid" = "uid_to")
-  # ) %>%
   left_join(
-    candidate_pairs %>% group_by(uid_from) %>% 
-      summarise(eca_lcd_contribution_from = sum(eca_lcd_contribution, na.rm = TRUE),
-                eca_euclidean_contribution_from = sum(eca_euclidean_contribution, na.rm = TRUE)),
+    candidate_pairs %>%
+      group_by(uid_from) %>%
+      summarise(
+        # All contributions
+        eca_lcd_contribution_from = sum(
+          eca_lcd_contribution, na.rm = TRUE
+        ),
+        eca_euclidean_contribution_from = sum(
+          eca_euclidean_contribution, na.rm = TRUE
+        ),
+        
+        # Contributions to patches within same grid
+        eca_lcd_contribution_from_same_grid = sum(
+          eca_lcd_contribution[grid_from == grid_to],
+          na.rm = TRUE
+        ),
+        eca_euclidean_contribution_from_same_grid = sum(
+          eca_euclidean_contribution[grid_from == grid_to],
+          na.rm = TRUE
+        ),
+        
+        # Contributions to patches outside the grid
+        eca_lcd_contribution_from_outside_grid = sum(
+          eca_lcd_contribution[grid_from != grid_to],
+          na.rm = TRUE
+        ),
+        eca_euclidean_contribution_from_outside_grid = sum(
+          eca_euclidean_contribution[grid_from != grid_to],
+          na.rm = TRUE
+        ),
+        
+        .groups = "drop"
+      ),
     by = c("uid" = "uid_from")
   )
 
@@ -138,6 +163,9 @@ hex_summary <- source_patch_centroid_info %>%
     
     hex.lcd.eca.contrib     = sum(eca_lcd_contribution_from, na.rm = TRUE),
     hex.euclid.eca.contrib        = sum(eca_euclidean_contribution_from , na.rm = TRUE),
+    
+    hex.lcd.eca.contrib_prop_internal     = sum(eca_lcd_contribution_from_same_grid, na.rm = TRUE)/sum(eca_lcd_contribution_from, na.rm = TRUE),
+    hex.euclid.eca.contrib_prop_internal        = sum(eca_euclidean_contribution_from_same_grid , na.rm = TRUE)/sum(eca_euclidean_contribution_from , na.rm = TRUE),
     
     n.clumps              = n_distinct(uid),
     

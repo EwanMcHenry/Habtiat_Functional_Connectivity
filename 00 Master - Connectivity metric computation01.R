@@ -82,6 +82,7 @@ for (this.ts.num in 1:length(this.tss)) { # : length(this.tss)]){
 } # end landscape loop
 
 
+
 for (this.ts.for.loop in this.tss) { # : length(this.tss)]){
   for (this.year in years.considered) {
     this.ts.num <- which(this.tss == this.ts.for.loop) # this bit should maybe automatically chosen in for loop in future
